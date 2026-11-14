@@ -155,7 +155,7 @@ float readaltra(void){
 // MOVE MOTORS
 void forward(void) {
 
-	for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 250; ) {
+
 		// Right, forwards
 		double R_Speed = (30.0/100.0)*(4000);
 		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
@@ -169,12 +169,12 @@ void forward(void) {
 		TIM3->CCR2 = L_Speed;
 		HAL_GPIO_WritePin(L298N_IN3_GPIO_Port, L298N_IN3_Pin, 1);
 		HAL_GPIO_WritePin(L298N_IN4_GPIO_Port, L298N_IN4_Pin, 0);
-	}
+
 }
 
 // backwords
 void backward(void){
-	for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 250; ) {
+
 		// Right, backwards
 		double R_Speed = (30.0/100.0)*(4000);
 		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
@@ -188,7 +188,7 @@ void backward(void){
 		TIM3->CCR2 = L_Speed;
 		HAL_GPIO_WritePin(L298N_IN3_GPIO_Port, L298N_IN3_Pin, 0);
 		HAL_GPIO_WritePin(L298N_IN4_GPIO_Port, L298N_IN4_Pin, 1);
-	}
+
 }
 
 
@@ -197,7 +197,6 @@ void backward(void){
 // STOP MOTORS
 void stop(void) {
 
-	for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 1000; ) {
 		// Right, stop
 		double R_Speed = (30.0/100.0)*(4000);
 		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
@@ -212,7 +211,6 @@ void stop(void) {
 		HAL_GPIO_WritePin(L298N_IN3_GPIO_Port, L298N_IN3_Pin, 0);
 		HAL_GPIO_WritePin(L298N_IN4_GPIO_Port, L298N_IN4_Pin, 0);
 
-	}
 }
 
 // servo stuff
