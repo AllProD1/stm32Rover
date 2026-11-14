@@ -215,6 +215,18 @@ void stop(void) {
 	}
 }
 
+// servo stuff
+
+void moveServo_right_forward(void){
+
+	// blocking version of moving the servo motors
+	__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 500);   // ~0°
+	HAL_Delay(6000);
+	__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);  // ~90°
+	HAL_Delay(2000);
+
+}
+
 
 /* USER CODE END 0 */
 
@@ -294,26 +306,29 @@ int main(void)
 
 
   // more led stuff
-  HEADLIGHTS();
-  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 2000;) {
+ //HEADLIGHTS();
+//  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 2000;) {
+//
+//  }
+//  HEADLIGHTS();
+//  horn = 1;
+//  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 500;) {
+//
+//  }
+//  horn = 0;
+//  left_turn_active = 1;
+//  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 2000;) {
+//
+//  }
+//  left_turn_active = 0;
+//  right_turn_active = 1;
+//  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 2000;) {
+//
+//  }
+//  right_turn_active = 0;
 
-  }
-  HEADLIGHTS();
-  horn = 1;
-  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 500;) {
 
-  }
-  horn = 0;
-  left_turn_active = 1;
-  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 2000;) {
 
-  }
-  left_turn_active = 0;
-  right_turn_active = 1;
-  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 2000;) {
-
-  }
-  right_turn_active = 0;
 
 
   while (1)
@@ -322,16 +337,8 @@ int main(void)
 		//HeartBeat();
 		Command_Proc();
 
-					// blocking version of moving the servo motors
-				   __HAL_TIM_SET_COMPARE(&htim2,TIM_CHANNEL_2, 500);
-		 	       HAL_Delay(2000);
-		 	       readaltra();
-		 	       __HAL_TIM_SET_COMPARE(&htim2,TIM_CHANNEL_2, 750);
-		  	       HAL_Delay(2000);
-		  	       readaltra();
-		     	   __HAL_TIM_SET_COMPARE(&htim2,TIM_CHANNEL_2, 1000);
-			       HAL_Delay(2000);
-			       readaltra();
+		moveServo_right_forward();
+
 
 
 		// bat mon shut down stuff
@@ -352,14 +359,13 @@ int main(void)
 		int frac = millivolts % 1000;
 		print(" %d.%03d\r\n", volts, frac);
 
-		//forward();
+		forward();
 
-//		if(readaltra() <= 30.0){
-//			stop();
-//			while(1==1){
-//
-//			}
-//		}
+		// stops in 2 feet
+		if(readaltra() < 60.0){
+			stop();
+
+		}
 
 
 
