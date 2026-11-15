@@ -167,7 +167,7 @@ void forward(void) {
 
 }
 
-// backwords
+// backwards
 void backward(void){
 
 		// Right, backwards
@@ -185,6 +185,27 @@ void backward(void){
 		HAL_GPIO_WritePin(L298N_IN4_GPIO_Port, L298N_IN4_Pin, 1);
 
 }
+
+
+//turn_around
+void turn_around(void){
+
+			// Right, forwards
+			double R_Speed = (30.0/100.0)*(4000);
+			HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+			TIM3->CCR1 = R_Speed;
+			HAL_GPIO_WritePin(L298N_IN1_GPIO_Port, L298N_IN1_Pin, 0);
+			HAL_GPIO_WritePin(L298N_IN2_GPIO_Port, L298N_IN2_Pin, 1);
+
+			// Left, backwards
+			double L_Speed = (30.0/100.0)*(4000);
+			HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+			TIM3->CCR2 = L_Speed;
+			HAL_GPIO_WritePin(L298N_IN3_GPIO_Port, L298N_IN3_Pin, 0);
+			HAL_GPIO_WritePin(L298N_IN4_GPIO_Port, L298N_IN4_Pin, 1);
+
+}
+
 
 
 
@@ -396,7 +417,7 @@ int main(void)
 
 	  // tasks that are always running
 
-		//HeartBeat();
+		HeartBeat();
 		Command_Proc();
 		battery_voltage_shutdown();
 
@@ -420,6 +441,10 @@ int main(void)
 				}
 			BREAKLIGHTS(GPIO_PIN_RESET);
 		}
+
+
+		// turn around stuff
+		turn_around();
 
 
 
