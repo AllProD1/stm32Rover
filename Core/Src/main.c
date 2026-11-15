@@ -144,6 +144,9 @@ float readaltra(void){
 // MOVE MOTORS
 void forward(void) {
 
+	// turn off break lights for stopping
+
+
 
 		// Right, forwards
 		double R_Speed = (30.0/100.0)*(4000);
@@ -185,6 +188,9 @@ void backward(void){
 
 // STOP MOTORS
 void stop(void) {
+
+		// break lights for stopping
+		BREAKLIGHTS();
 
 		// Right, stop
 		double R_Speed = (30.0/100.0)*(4000);
@@ -242,6 +248,38 @@ void battery_voltage_shutdown(void){
 			int volts = millivolts / 1000;
 			int frac = millivolts % 1000;
 			print(" %d.%03d\r\n", volts, frac);
+}
+
+
+
+
+// start up command
+
+void bist(void){
+	 //  more led stuff
+	  HEADLIGHTS();
+	  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 2000;) {
+
+	  }
+	  HEADLIGHTS();
+
+	  horn = 1;
+	  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 500;) {
+
+	  }
+	  horn = 0;
+
+	  left_turn_active = 1;
+	  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 2000;) {
+
+	  }
+	  left_turn_active = 0;
+
+	  right_turn_active = 1;
+	  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 2000;) {
+
+	  }
+	  right_turn_active = 0;
 }
 
 
@@ -323,30 +361,8 @@ int main(void)
   HAL_Delay(2000);
 
 
-
-  // more led stuff
- //HEADLIGHTS();
-//  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 2000;) {
-//
-//  }
-//  HEADLIGHTS();
-//  horn = 1;
-//  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 500;) {
-//
-//  }
-//  horn = 0;
-//  left_turn_active = 1;
-//  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 2000;) {
-//
-//  }
-//  left_turn_active = 0;
-//  right_turn_active = 1;
-//  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 2000;) {
-//
-//  }
-//  right_turn_active = 0;
-
-
+  // startup for leds and horn
+  bist();
 
 
 
@@ -373,7 +389,9 @@ int main(void)
 		// stops in 2 feet
 		if(readaltra() < 60.0){
 			stop();
-
+			while(readaltra()<60.0){
+				stop();
+			}
 		}
 
 

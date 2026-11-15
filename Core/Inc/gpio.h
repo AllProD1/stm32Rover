@@ -42,6 +42,7 @@ void MX_GPIO_Init(void);
 void HeartBeat(void);
 void HEADLIGHTS(void);
 void HORN(void);
+void BREAKLIGHTS(void);
 
 /* USER CODE END Prototypes */
 

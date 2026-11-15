@@ -29,6 +29,11 @@ HAL_GPIO_TogglePin(HEADLIGHT_GPIO_Port, HEADLIGHT_Pin);
 void HORN(void) {
 HAL_GPIO_TogglePin(HORN_GPIO_Port, HORN_Pin);
 }
+
+void BREAKLIGHTS(void){
+	HAL_GPIO_TogglePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin);
+	HAL_GPIO_TogglePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin);
+}
 /* USER CODE END 0 */
 
 /*----------------------------------------------------------------------------*/
