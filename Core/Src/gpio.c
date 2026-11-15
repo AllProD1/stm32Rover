@@ -30,16 +30,10 @@ void HORN(void) {
 HAL_GPIO_TogglePin(HORN_GPIO_Port, HORN_Pin);
 }
 
-<<<<<<< HEAD
-void BREAKLIGHTS(GPIO_PinState state) {
-    HAL_GPIO_WritePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin, state);
-    HAL_GPIO_WritePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin, state);
-=======
 void BREAKLIGHTS(GPIO_PinState state){
 	HAL_GPIO_WritePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin,state);
 	HAL_GPIO_WritePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin,state);
 //	HAL_GPIO_WritePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin,1);
->>>>>>> branch 'master' of https://github.com/AllProD1/stm32Rover.git
 }
 /* USER CODE END 0 */
 

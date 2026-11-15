@@ -167,7 +167,7 @@ void forward(void) {
 
 }
 
-// backwards
+// backwords
 void backward(void){
 
 		// Right, backwards
@@ -187,37 +187,12 @@ void backward(void){
 }
 
 
-//turn_around
-void turn_around(void){
-
-			// Right, forwards
-			double R_Speed = (30.0/100.0)*(4000);
-			HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-			TIM3->CCR1 = R_Speed;
-			HAL_GPIO_WritePin(L298N_IN1_GPIO_Port, L298N_IN1_Pin, 0);
-			HAL_GPIO_WritePin(L298N_IN2_GPIO_Port, L298N_IN2_Pin, 1);
-
-			// Left, backwards
-			double L_Speed = (30.0/100.0)*(4000);
-			HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-			TIM3->CCR2 = L_Speed;
-			HAL_GPIO_WritePin(L298N_IN3_GPIO_Port, L298N_IN3_Pin, 0);
-			HAL_GPIO_WritePin(L298N_IN4_GPIO_Port, L298N_IN4_Pin, 1);
-
-}
-
-
-
 
 
 // STOP MOTORS
 void stop(void) {
 
-<<<<<<< HEAD
-
-=======
 		// break lights for stopping
->>>>>>> branch 'master' of https://github.com/AllProD1/stm32Rover.git
 
 		// Right, stop
 		double R_Speed = (50.0/100.0)*(4000);
@@ -435,26 +410,13 @@ int main(void)
 		forward();
 
 		// stops in 2 feet
-<<<<<<< HEAD
-		if(readaltra() <= 60.0&& servo_state == 1){
-			// break lights for stopping
-			BREAKLIGHTS(GPIO_PIN_SET);
-				while(readaltra() <= 60.0 && servo_state == 1){
-						stop();
-				}
-=======
 		if (readaltra()<= 60.0 && servo_state == 1){
 			BREAKLIGHTS(GPIO_PIN_SET);
 			while(readaltra()<= 60.0 && servo_state == 1)
 			stop();
 		} else {
->>>>>>> branch 'master' of https://github.com/AllProD1/stm32Rover.git
 			BREAKLIGHTS(GPIO_PIN_RESET);
 		}
-
-
-		// turn around stuff
-		turn_around();
 
 
 
