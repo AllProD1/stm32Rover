@@ -67,6 +67,9 @@ uint32_t Value1 = 0;
 uint32_t Value2 = 0;
 uint16_t Distance  = 0;  // cm
 char buffer[6];
+uint32_t servo_millis=0;
+uint32_t servo_state=0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -218,10 +221,33 @@ void stop(void) {
 void moveServo_right_forward(void){
 
 	// blocking version of moving the servo motors
-	__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 500);   // ~0°
-	HAL_Delay(6000);
-	__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);  // ~90°
-	HAL_Delay(2000);
+//	__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 500);   // ~0°
+//	HAL_Delay(6000);
+//	__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);  // ~90°
+//	HAL_Delay(2000);
+	//2500 // 180
+
+	//Non-blocking version of the code
+	if (servo_millis == 0){
+		servo_millis = HAL_GetTick();
+		servo_state = 1;
+	}
+	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 1){
+		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 500);   // ~0°
+		servo_millis = HAL_GetTick(); //Reset Back to 0
+		servo_state = 2;
+	}
+	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 2){
+		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~0°
+		servo_millis = HAL_GetTick(); //Reset Back to 0
+		servo_state = 3;
+	}
+	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 3){
+		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 2500);   // ~0°
+		servo_millis = 0; //Reset Back to 0
+		servo_state = 0;
+	}
+//	if(servo_millis- HAL_GetTick())
 
 }
 
@@ -361,7 +387,7 @@ int main(void)
 		forward();
 
 		// stops in 2 feet
-		if(readaltra() < 60.0){
+		if(readaltra() <= 60.0){
 			stop();
 
 		}
