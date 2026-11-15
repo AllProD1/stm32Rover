@@ -171,14 +171,14 @@ void forward(void) {
 void backward(void){
 
 		// Right, backwards
-		double R_Speed = (30.0/100.0)*(4000);
+		double R_Speed = (50.0/100.0)*(4000);
 		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 		TIM3->CCR1 = R_Speed;
 		HAL_GPIO_WritePin(L298N_IN1_GPIO_Port, L298N_IN1_Pin, 1);
 		HAL_GPIO_WritePin(L298N_IN2_GPIO_Port, L298N_IN2_Pin, 0);
 
 		// Left, backwards
-		double L_Speed = (30.0/100.0)*(4000);
+		double L_Speed = (55.55/100.0)*(4000);
 		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
 		TIM3->CCR2 = L_Speed;
 		HAL_GPIO_WritePin(L298N_IN3_GPIO_Port, L298N_IN3_Pin, 0);
@@ -195,14 +195,14 @@ void stop(void) {
 		// break lights for stopping
 
 		// Right, stop
-		double R_Speed = (30.0/100.0)*(4000);
+		double R_Speed = (50.0/100.0)*(4000);
 		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 		TIM3->CCR1 = R_Speed;
 		HAL_GPIO_WritePin(L298N_IN1_GPIO_Port, L298N_IN1_Pin, 0);
 		HAL_GPIO_WritePin(L298N_IN2_GPIO_Port, L298N_IN2_Pin, 0);
 
 		// Left, stop
-		double L_Speed = (30.0/100.0)*(4000);
+		double L_Speed = (55.55/100.0)*(4000);
 		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
 		TIM3->CCR2 = L_Speed;
 		HAL_GPIO_WritePin(L298N_IN3_GPIO_Port, L298N_IN3_Pin, 0);
