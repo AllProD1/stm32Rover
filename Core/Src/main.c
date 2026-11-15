@@ -81,43 +81,32 @@ void SystemClock_Config(void);
 // LED CODE STUFFF YAYYAYAYYA
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-if (htim->Instance == TIM4) {
-if (left_turn_active) {
-HAL_GPIO_TogglePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin);
+	if (htim->Instance == TIM4) {
+	if (left_turn_active) {
+	HAL_GPIO_TogglePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin);
+	}
+	else {
+	// Make sure the light is forced off when not turning
+	// HAL_GPIO_WritePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin, GPIO_PIN_RESET);
+	}
+	if (right_turn_active) {
+	HAL_GPIO_TogglePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin);
+	}
+	else {
+	// HAL_GPIO_WritePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin, GPIO_PIN_RESET);
+	}
+
+	// horn
+	if (horn) {
+	HAL_GPIO_TogglePin(HORN_GPIO_Port, HORN_Pin);
+	} else {
+	// HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, GPIO_PIN_RESET);
+				}
+	}
 }
-else {
-// Make sure the light is forced off when not turning
-// HAL_GPIO_WritePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin, GPIO_PIN_RESET);
-}
-if (right_turn_active) {
-HAL_GPIO_TogglePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin);
-}
-else {
-// HAL_GPIO_WritePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin, GPIO_PIN_RESET);
-}
-
-// horn
-if (horn) {
-HAL_GPIO_TogglePin(HORN_GPIO_Port, HORN_Pin);
-} else {
-// HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, GPIO_PIN_RESET);
-	        }
-}
-}
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -224,6 +213,38 @@ void moveServo_right_forward(void){
 	HAL_Delay(2000);
 
 }
+
+void moveServo_left_forward(void){
+	__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~0°
+		HAL_Delay(6000);
+		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 2500);  // ~180°
+		HAL_Delay(2000);
+}
+
+
+// bat mon stuff
+
+void battery_voltage_shutdown(void){
+	// bat mon shut down stuff
+			float voltage = getBatteryVoltage();
+
+
+			if (voltage < 6.0f && voltage > 1.0f) {
+			HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
+			HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_2);
+
+			// Pls Turn off lights.
+			while (1==1){
+			//Die XP
+			}
+			}
+			int millivolts = (int)(voltage * 1000.0f + 0.5f);
+			int volts = millivolts / 1000;
+			int frac = millivolts % 1000;
+			print(" %d.%03d\r\n", volts, frac);
+}
+
+
 
 
 /* USER CODE END 0 */
@@ -332,31 +353,20 @@ int main(void)
   while (1)
   {
 
+	  // tasks that are always running
+
 		//HeartBeat();
 		Command_Proc();
+		battery_voltage_shutdown();
+
+
+
+		// logic to control movement for the project phase
+
+		//
 
 		moveServo_right_forward();
 
-
-
-
-		// bat mon shut down stuff
-		float voltage = getBatteryVoltage();
-
-
-		if (voltage < 6.0f && voltage > 1.0f) {
-		HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
-		HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_2);
-
-		// Pls Turn off lights.
-		while (1==1){
-		//Die XP
-		}
-		}
-		int millivolts = (int)(voltage * 1000.0f + 0.5f);
-		int volts = millivolts / 1000;
-		int frac = millivolts % 1000;
-		print(" %d.%03d\r\n", volts, frac);
 
 		forward();
 
