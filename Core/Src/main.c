@@ -167,7 +167,7 @@ void forward(void) {
 
 }
 
-// backwards
+// backwards should work now
 void backward(void){
 
 		// Right, backwards
@@ -212,12 +212,6 @@ void turn_around(void){
 
 // STOP MOTORS
 void stop(void) {
-
-<<<<<<< HEAD
-
-=======
-		// break lights for stopping
->>>>>>> branch 'master' of https://github.com/AllProD1/stm32Rover.git
 
 		// Right, stop
 		double R_Speed = (50.0/100.0)*(4000);
