@@ -83,33 +83,33 @@ void SystemClock_Config(void);
 
 // LED CODE STUFFF YAYYAYAYYA
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-	if (htim->Instance == TIM4) {
-	if (left_turn_active) {
-	HAL_GPIO_TogglePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin);
-	}
-	else {
-	// Make sure the light is forced off when not turning
-	// HAL_GPIO_WritePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin, GPIO_PIN_RESET);
-	}
-	if (right_turn_active) {
-	HAL_GPIO_TogglePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin);
-	}
-	else {
-	// HAL_GPIO_WritePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin, GPIO_PIN_RESET);
-	}
-
-	// horn
-	if (horn) {
-	HAL_GPIO_TogglePin(HORN_GPIO_Port, HORN_Pin);
-	} else {
-	// HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, GPIO_PIN_RESET);
-				}
-	}
-}
+//void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+//	if (htim->Instance == TIM4) {
+//	if (left_turn_active) {
+//	HAL_GPIO_TogglePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin);
+//	}
+//	else {
+//	// Make sure the light is forced off when not turning
+//	// HAL_GPIO_WritePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin, GPIO_PIN_RESET);
+//		HAL_GPIO_WritePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin, GPIO_PIN_RESET);
+//	}
+//	if (right_turn_active) {
+//	HAL_GPIO_TogglePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin);
+//	}
+//	else {
+//	// HAL_GPIO_WritePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin, GPIO_PIN_RESET);
+//		HAL_GPIO_WritePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin, GPIO_PIN_RESET);
+//	}
+//
+//	// horn
+//	if (horn) {
+//	HAL_GPIO_TogglePin(HORN_GPIO_Port, HORN_Pin);
+//	} else {
+//	// HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, GPIO_PIN_RESET);
+//		HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, GPIO_PIN_RESET);
+//				}
+//	}
+//}
 
 
 
@@ -193,7 +193,6 @@ void backward(void){
 void stop(void) {
 
 		// break lights for stopping
-		BREAKLIGHTS();
 
 		// Right, stop
 		double R_Speed = (30.0/100.0)*(4000);
@@ -289,11 +288,11 @@ void bist(void){
 	  }
 	  HEADLIGHTS();
 
-	  horn = 1;
+	  HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, GPIO_PIN_SET);
 	  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 500;) {
 
 	  }
-	  horn = 0;
+	  HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, GPIO_PIN_RESET);
 
 	  left_turn_active = 1;
 	  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 2000;) {
@@ -375,7 +374,7 @@ int main(void)
     HD44780_Clear();
     HD44780_SetCursor(0,0);
     HD44780_PrintStr("HC-SR04");
-    HAL_Delay(2000);
+    HAL_Delay(500);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -384,7 +383,7 @@ int main(void)
   print("Rover v0.1 %s %s\r\n\r\n", __DATE__, __TIME__);
 
   // boot up delay
-  HAL_Delay(2000);
+  HAL_Delay(500);
 
 
   // startup for leds and horn
@@ -413,10 +412,16 @@ int main(void)
 		forward();
 
 		// stops in 2 feet
-
-		while(readaltra() <= 60.0 && servo_state == 1){
-				stop();
+		if (readaltra()<= 60.0 && servo_state == 1){
+			BREAKLIGHTS(GPIO_PIN_SET);
+			while(readaltra()<= 60.0 && servo_state == 1)
+			stop();
+		} else {
+			BREAKLIGHTS(GPIO_PIN_RESET);
 		}
+//		else{
+//			BREAKLIGHtS_
+//		}
 
 
 
