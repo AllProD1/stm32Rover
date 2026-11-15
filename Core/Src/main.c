@@ -152,14 +152,14 @@ void forward(void) {
 
 
 		// Right, forwards
-		double R_Speed = (30.0/100.0)*(4000);
+		double R_Speed = (50.0/100.0)*(4000);
 		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 		TIM3->CCR1 = R_Speed;
 		HAL_GPIO_WritePin(L298N_IN1_GPIO_Port, L298N_IN1_Pin, 0);
 		HAL_GPIO_WritePin(L298N_IN2_GPIO_Port, L298N_IN2_Pin, 1);
 
 		// Left, forwards
-		double L_Speed = (30.0/100.0)*(4000);
+		double L_Speed = (55.55/100.0)*(4000);
 		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
 		TIM3->CCR2 = L_Speed;
 		HAL_GPIO_WritePin(L298N_IN3_GPIO_Port, L298N_IN3_Pin, 1);
@@ -226,7 +226,7 @@ void moveServo_right_forward(void){
 		servo_state = 2;
 	}
 	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 2){
-		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~0°
+		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~90°
 		servo_millis = 0; //Reset Back to 0
 		servo_state = 1;
 	}
@@ -241,12 +241,12 @@ void moveServo_left_forward(void){
 			servo_state = 1;
 	}
 else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 1){
-		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 2500);   // ~0°
+		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 2500);   // ~180°
 		servo_millis = HAL_GetTick(); //Reset Back to 0
 		servo_state = 2;
 	}
 	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 2){
-		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~0°
+		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~90°
 		servo_millis = 0; //Reset Back to 0
 		servo_state = 1;
 	}
@@ -263,16 +263,17 @@ void battery_voltage_shutdown(void){
 			if (voltage < 6.0f && voltage > 1.0f) {
 			HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
 			HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_2);
+			int millivolts = (int)(voltage * 1000.0f + 0.5f);
+						int volts = millivolts / 1000;
+						int frac = millivolts % 1000;
+						print(" %d.%03d\r\n", volts, frac);
 
 			// Pls Turn off lights.
 			while (1==1){
 			//Die XP
 			}
 			}
-			int millivolts = (int)(voltage * 1000.0f + 0.5f);
-			int volts = millivolts / 1000;
-			int frac = millivolts % 1000;
-			print(" %d.%03d\r\n", volts, frac);
+
 }
 
 
@@ -383,11 +384,11 @@ int main(void)
   print("Rover v0.1 %s %s\r\n\r\n", __DATE__, __TIME__);
 
   // boot up delay
-  HAL_Delay(500);
+//  HAL_Delay(500);
 
 
   // startup for leds and horn
-  bist();
+//  bist();
 
 
 
@@ -396,15 +397,12 @@ int main(void)
 
 	  // tasks that are always running
 
-		//HeartBeat();
+		HeartBeat();
 		Command_Proc();
 		battery_voltage_shutdown();
 
-
-
 		// logic to control movement for the project phase
 
-		//
 
 		moveServo_right_forward();
 
@@ -419,9 +417,7 @@ int main(void)
 		} else {
 			BREAKLIGHTS(GPIO_PIN_RESET);
 		}
-//		else{
-//			BREAKLIGHtS_
-//		}
+
 
 
 
