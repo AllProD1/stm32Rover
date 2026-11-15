@@ -83,33 +83,33 @@ void SystemClock_Config(void);
 
 // LED CODE STUFFF YAYYAYAYYA
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-	if (htim->Instance == TIM4) {
-	if (left_turn_active) {
-	HAL_GPIO_TogglePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin);
-	}
-	else {
-	// Make sure the light is forced off when not turning
-	// HAL_GPIO_WritePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin, GPIO_PIN_RESET);
-	}
-	if (right_turn_active) {
-	HAL_GPIO_TogglePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin);
-	}
-	else {
-	// HAL_GPIO_WritePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin, GPIO_PIN_RESET);
-	}
-
-	// horn
-	if (horn) {
-	HAL_GPIO_TogglePin(HORN_GPIO_Port, HORN_Pin);
-	} else {
-	// HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, GPIO_PIN_RESET);
-				}
-	}
-}
+//void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+//	if (htim->Instance == TIM4) {
+//	if (left_turn_active) {
+//	HAL_GPIO_TogglePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin);
+//	}
+//	else {
+//	// Make sure the light is forced off when not turning
+//	// HAL_GPIO_WritePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin, GPIO_PIN_RESET);
+//		HAL_GPIO_WritePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin, GPIO_PIN_RESET);
+//	}
+//	if (right_turn_active) {
+//	HAL_GPIO_TogglePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin);
+//	}
+//	else {
+//	// HAL_GPIO_WritePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin, GPIO_PIN_RESET);
+//		HAL_GPIO_WritePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin, GPIO_PIN_RESET);
+//	}
+//
+//	// horn
+//	if (horn) {
+//	HAL_GPIO_TogglePin(HORN_GPIO_Port, HORN_Pin);
+//	} else {
+//	// HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, GPIO_PIN_RESET);
+//		HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, GPIO_PIN_RESET);
+//				}
+//	}
+//}
 
 
 
@@ -152,14 +152,14 @@ void forward(void) {
 
 
 		// Right, forwards
-		double R_Speed = (30.0/100.0)*(4000);
+		double R_Speed = (50.0/100.0)*(4000);
 		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 		TIM3->CCR1 = R_Speed;
 		HAL_GPIO_WritePin(L298N_IN1_GPIO_Port, L298N_IN1_Pin, 0);
 		HAL_GPIO_WritePin(L298N_IN2_GPIO_Port, L298N_IN2_Pin, 1);
 
 		// Left, forwards
-		double L_Speed = (30.0/100.0)*(4000);
+		double L_Speed = (55.55/100.0)*(4000);
 		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
 		TIM3->CCR2 = L_Speed;
 		HAL_GPIO_WritePin(L298N_IN3_GPIO_Port, L298N_IN3_Pin, 1);
@@ -171,14 +171,14 @@ void forward(void) {
 void backward(void){
 
 		// Right, backwards
-		double R_Speed = (30.0/100.0)*(4000);
+		double R_Speed = (50.0/100.0)*(4000);
 		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 		TIM3->CCR1 = R_Speed;
 		HAL_GPIO_WritePin(L298N_IN1_GPIO_Port, L298N_IN1_Pin, 1);
 		HAL_GPIO_WritePin(L298N_IN2_GPIO_Port, L298N_IN2_Pin, 0);
 
 		// Left, backwards
-		double L_Speed = (30.0/100.0)*(4000);
+		double L_Speed = (55.55/100.0)*(4000);
 		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
 		TIM3->CCR2 = L_Speed;
 		HAL_GPIO_WritePin(L298N_IN3_GPIO_Port, L298N_IN3_Pin, 0);
@@ -213,17 +213,21 @@ void turn_around(void){
 // STOP MOTORS
 void stop(void) {
 
+<<<<<<< HEAD
 
+=======
+		// break lights for stopping
+>>>>>>> branch 'master' of https://github.com/AllProD1/stm32Rover.git
 
 		// Right, stop
-		double R_Speed = (30.0/100.0)*(4000);
+		double R_Speed = (50.0/100.0)*(4000);
 		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 		TIM3->CCR1 = R_Speed;
 		HAL_GPIO_WritePin(L298N_IN1_GPIO_Port, L298N_IN1_Pin, 0);
 		HAL_GPIO_WritePin(L298N_IN2_GPIO_Port, L298N_IN2_Pin, 0);
 
 		// Left, stop
-		double L_Speed = (30.0/100.0)*(4000);
+		double L_Speed = (55.55/100.0)*(4000);
 		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
 		TIM3->CCR2 = L_Speed;
 		HAL_GPIO_WritePin(L298N_IN3_GPIO_Port, L298N_IN3_Pin, 0);
@@ -247,7 +251,7 @@ void moveServo_right_forward(void){
 		servo_state = 2;
 	}
 	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 2){
-		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~0°
+		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~90°
 		servo_millis = 0; //Reset Back to 0
 		servo_state = 1;
 	}
@@ -262,12 +266,12 @@ void moveServo_left_forward(void){
 			servo_state = 1;
 	}
 else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 1){
-		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 2500);   // ~0°
+		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 2500);   // ~180°
 		servo_millis = HAL_GetTick(); //Reset Back to 0
 		servo_state = 2;
 	}
 	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 2){
-		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~0°
+		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~90°
 		servo_millis = 0; //Reset Back to 0
 		servo_state = 1;
 	}
@@ -284,16 +288,17 @@ void battery_voltage_shutdown(void){
 			if (voltage < 6.0f && voltage > 1.0f) {
 			HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
 			HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_2);
+			int millivolts = (int)(voltage * 1000.0f + 0.5f);
+						int volts = millivolts / 1000;
+						int frac = millivolts % 1000;
+						print(" %d.%03d\r\n", volts, frac);
 
 			// Pls Turn off lights.
 			while (1==1){
 			//Die XP
 			}
 			}
-			int millivolts = (int)(voltage * 1000.0f + 0.5f);
-			int volts = millivolts / 1000;
-			int frac = millivolts % 1000;
-			print(" %d.%03d\r\n", volts, frac);
+
 }
 
 
@@ -309,11 +314,11 @@ void bist(void){
 	  }
 	  HEADLIGHTS();
 
-	  horn = 1;
+	  HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, GPIO_PIN_SET);
 	  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 500;) {
 
 	  }
-	  horn = 0;
+	  HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, GPIO_PIN_RESET);
 
 	  left_turn_active = 1;
 	  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 2000;) {
@@ -395,7 +400,7 @@ int main(void)
     HD44780_Clear();
     HD44780_SetCursor(0,0);
     HD44780_PrintStr("HC-SR04");
-    HAL_Delay(2000);
+    HAL_Delay(500);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -404,11 +409,11 @@ int main(void)
   print("Rover v0.1 %s %s\r\n\r\n", __DATE__, __TIME__);
 
   // boot up delay
-  HAL_Delay(2000);
+//  HAL_Delay(500);
 
 
   // startup for leds and horn
-  bist();
+//  bist();
 
 
 
@@ -421,11 +426,8 @@ int main(void)
 		Command_Proc();
 		battery_voltage_shutdown();
 
-
-
 		// logic to control movement for the project phase
 
-		//
 
 		moveServo_right_forward();
 
@@ -433,18 +435,27 @@ int main(void)
 		forward();
 
 		// stops in 2 feet
+<<<<<<< HEAD
 		if(readaltra() <= 60.0&& servo_state == 1){
 			// break lights for stopping
 			BREAKLIGHTS(GPIO_PIN_SET);
 				while(readaltra() <= 60.0 && servo_state == 1){
 						stop();
 				}
+=======
+		if (readaltra()<= 60.0 && servo_state == 1){
+			BREAKLIGHTS(GPIO_PIN_SET);
+			while(readaltra()<= 60.0 && servo_state == 1)
+			stop();
+		} else {
+>>>>>>> branch 'master' of https://github.com/AllProD1/stm32Rover.git
 			BREAKLIGHTS(GPIO_PIN_RESET);
 		}
 
 
 		// turn around stuff
 		turn_around();
+
 
 
 
