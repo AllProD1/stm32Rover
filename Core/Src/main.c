@@ -167,7 +167,7 @@ void forward(void) {
 
 }
 
-// backwords
+// backwards
 void backward(void){
 
 		// Right, backwards
