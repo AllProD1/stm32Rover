@@ -192,8 +192,7 @@ void backward(void){
 // STOP MOTORS
 void stop(void) {
 
-		// break lights for stopping
-		BREAKLIGHTS();
+
 
 		// Right, stop
 		double R_Speed = (30.0/100.0)*(4000);
@@ -413,9 +412,13 @@ int main(void)
 		forward();
 
 		// stops in 2 feet
-
-		while(readaltra() <= 60.0 && servo_state == 1){
-				stop();
+		if(readaltra() <= 60.0&& servo_state == 1){
+			// break lights for stopping
+			BREAKLIGHTS(GPIO_PIN_SET);
+				while(readaltra() <= 60.0 && servo_state == 1){
+						stop();
+				}
+			BREAKLIGHTS(GPIO_PIN_RESET);
 		}
 
 
