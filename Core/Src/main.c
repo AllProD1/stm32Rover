@@ -219,6 +219,9 @@ void stop(void) {
 //TURN AROUND IN A 180
 void turn_around(void){
 
+	// need to turn on left turn signal as that is the turn the robot makes
+			left_turn_active = 1;
+
 	// Right, forwards
 			double R_Speed = (50.0/100.0)*(4000);
 			HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
@@ -471,6 +474,7 @@ int main(void)
 		            motor_millis = HAL_GetTick();
 		            robot_state = STATE_TURNING;
 		        }
+		        left_turn_active = 0; // should turn the turn sign
 		        break;
 
 
