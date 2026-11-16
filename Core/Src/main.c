@@ -458,6 +458,7 @@ int main(void)
 			stop();
 		}
 
+
 		// THIS SWITCH BELOW IS HUGE should help us going forward
 		// Lachlan you should be able to set up your own cases that will correct it left vs. right
 		// I also think the timer here may help us remember where we started I am not sure though
