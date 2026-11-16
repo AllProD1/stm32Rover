@@ -71,6 +71,11 @@ uint16_t Distance  = 0;  // cm
 char buffer[6];
 uint32_t servo_millis=0;
 uint32_t servo_state=0; //State 2 is left or right, state 1 is forward.
+// These time variables are used to determine how long it takes the rover to
+// get to the end of the hallway, then run for that amount of time on the way back.
+uint32_t startTime = 0;
+uint32_t stopTime = 0;
+uint32_t diffTime = 0;
 
 // enum for the robot movement state machine
 typedef enum {
@@ -434,7 +439,7 @@ int main(void)
 //  bist();
 
 
-
+  startTime = HAL_GetTick(); // start the "timer" for how long it takes to go down the hall (one way)
   while (1)
   {
 
@@ -448,11 +453,15 @@ int main(void)
 
 
 
+		// This should stop the rover on the way back. Subtracting 7200 for the time it takes to turn around.
+		if (HAL_GetTick() - stopTime - 7200 >= diffTime) {
+			stop();
+		}
+
 
 		// THIS SWITCH BELOW IS HUGE should help us going forward
 		// Lachlan you should be able to set up your own cases that will correct it left vs. right
 		// I also think the timer here may help us remember where we started I am not sure though
-
 
 		// switch loop to control the conditions for driving the robot
 		 switch (robot_state)
@@ -477,6 +486,8 @@ int main(void)
 		        if (readaltra() > 60.0 && servo_state == 1){
 		            robot_state = STATE_DRIVING_FORWARD;           // path cleared
 		        } else if (HAL_GetTick() - motor_millis >= 3000){
+		        		stopTime = HAL_GetTick(); // stop the "timer" for how long it takes to go down the hall one way
+		        		diffTime = stopTime - startTime - 3000; // subtract startTime from stopTime to determine how long it took, subtract 3000 for time waiting.
 		            turn_around();
 		            motor_millis = HAL_GetTick();
 		            robot_state = STATE_STOP_TURNING;
@@ -512,6 +523,17 @@ int main(void)
 		    		            robot_state = STATE_DRIVING_BACK;           // path cleared
 		    		        }
 		        break;
+				if (readaltra() <= 60.0 && servo_state == 1){
+					BREAKLIGHTS(GPIO_PIN_SET);
+					stop();
+					motor_millis = HAL_GetTick();
+					robot_state = STATE_PAUSING;
+				} else {
+					BREAKLIGHTS(GPIO_PIN_RESET);
+					forward();
+					moveServo_left_forward(); // servo control on the way back the hall
+				}
+				break;
 		    }
 
 
