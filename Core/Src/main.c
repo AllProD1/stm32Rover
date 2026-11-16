@@ -277,12 +277,12 @@ void moveServo_left_forward(void){
 			servo_millis = HAL_GetTick();
 			servo_state = 1;
 	}
-else if (HAL_GetTick() - servo_millis >= 1000 && servo_state == 1){
+else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 1){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 2500);   // ~180°
 		servo_millis = HAL_GetTick(); //Reset Back to 0
 		servo_state = 2;
 	}
-	else if (HAL_GetTick() - servo_millis >= 1000 && servo_state == 2){
+	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 2){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~90°
 		servo_millis = 0; //Reset Back to 0
 		servo_state = 1;
@@ -329,7 +329,7 @@ void bist(void){
 
 	 // horn = 1;
 	  HORN(GPIO_PIN_SET);
-	  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 2000;) {
+	  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 1000;) {
 
 	  }
 	 // horn = 0;
@@ -438,8 +438,7 @@ int main(void)
   while (1)
   {
 
-
-	  // tasks that are always running
+ // tasks that are always running
 
 		HeartBeat();
 		Command_Proc();
