@@ -253,12 +253,12 @@ void moveServo_right_forward(void){
 		servo_millis = HAL_GetTick();
 		servo_state = 1;
 	}
-	else if (HAL_GetTick() - servo_millis >= 1000 && servo_state == 1){
+	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 1){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 500);   // ~0°
 		servo_millis = HAL_GetTick(); //Reset Back to 0
 		servo_state = 2;
 	}
-	else if (HAL_GetTick() - servo_millis >= 1000 && servo_state == 2){
+	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 2){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~90°
 		servo_millis = 0; //Reset Back to 0
 		servo_state = 1;
@@ -438,8 +438,6 @@ int main(void)
   while (1)
   {
 
-	  //bist();
-
 
 	  // tasks that are always running
 
@@ -484,7 +482,7 @@ int main(void)
 		            motor_millis = HAL_GetTick();
 		            robot_state = STATE_STOP_TURNING;
 		        }
-		        left_turn_active = 0; // should turn the turn sign
+
 		        break;
 
 
@@ -498,7 +496,6 @@ int main(void)
 		        break;
 
 		    case STATE_DRIVING_BACK:
-<<<<<<< HEAD
 		    	if (readaltra() <= 60.0 && servo_state == 1){
 		    		BREAKLIGHTS(GPIO_PIN_SET);
 		    		stop();
@@ -516,19 +513,6 @@ int main(void)
 		    		            robot_state = STATE_DRIVING_BACK;           // path cleared
 		    		        }
 		        break;
-=======
-				if (readaltra() <= 60.0 && servo_state == 1){
-					BREAKLIGHTS(GPIO_PIN_SET);
-					stop();
-					motor_millis = HAL_GetTick();
-					robot_state = STATE_PAUSING;
-				} else {
-					BREAKLIGHTS(GPIO_PIN_RESET);
-					forward();
-					moveServo_left_forward(); // servo control on the way back the hall
-				}
-				break;
->>>>>>> branch 'master' of https://github.com/AllProD1/stm32Rover.git
 		    }
 
 
