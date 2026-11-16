@@ -176,12 +176,12 @@ void moveServo_right_forward(void){
 		servo_millis = HAL_GetTick();
 		servo_state = 1;
 	}
-	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 1){
+	else if (HAL_GetTick() - servo_millis >= 2000 && HAL_GetTick() - servo_millis >= 1000  && servo_state == 1){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 500);   // ~0°
 		servo_millis = HAL_GetTick(); //Reset Back to 0
 		servo_state = 2;
 	}
-	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 2){
+	else if (HAL_GetTick() - servo_millis >= 2000 && HAL_GetTick() - servo_millis >= 1000 && servo_state == 2){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~90°
 		servo_millis = 0; //Reset Back to 0
 		servo_state = 1;
@@ -200,12 +200,12 @@ void moveServo_left_forward(void){
 			servo_millis = HAL_GetTick();
 			servo_state = 1;
 	}
-else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 1){
+else if (HAL_GetTick() - servo_millis >= 2000 && HAL_GetTick() - servo_millis >= 1500 && servo_state == 1){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 2500);   // ~180°
 		servo_millis = HAL_GetTick(); //Reset Back to 0
 		servo_state = 2;
 	}
-	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 2){
+	else if (HAL_GetTick() - servo_millis >= 2000 && HAL_GetTick() - servo_millis >= 1500 && servo_state == 2){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~90°
 		servo_millis = 0; //Reset Back to 0
 		servo_state = 1;
@@ -372,9 +372,10 @@ int main(void)
 
 
 		// This should stop the rover on the way back. Subtracting 7200 for the time it takes to turn around.
-		if (HAL_GetTick() - stopTime - 7200 >= diffTime) {
-			stop();
-		}
+		//TODO: This acutally just breaks the code since stopTime is currently. BEN, THIS IS WHY YOU HAD TO ADD THE STATE/CHECK IF IT WAS DRIVING BACK.
+//		if (HAL_GetTick() - stopTime - 7200 >= diffTime) {
+//			stop();
+//		}
 
 
 		// THIS SWITCH BELOW IS HUGE should help us going forward
