@@ -509,7 +509,6 @@ int main(void)
 		        break;
 
 		    case STATE_DRIVING_BACK:
-<<<<<<< HEAD
 		    	if (readaltra() <= 60.0 && servo_state == 1){
 		    		BREAKLIGHTS(GPIO_PIN_SET);
 		    		stop();
@@ -527,7 +526,6 @@ int main(void)
 		    		            robot_state = STATE_DRIVING_BACK;           // path cleared
 		    		        }
 		        break;
-=======
 				if (readaltra() <= 60.0 && servo_state == 1){
 					BREAKLIGHTS(GPIO_PIN_SET);
 					stop();
@@ -539,7 +537,6 @@ int main(void)
 					moveServo_left_forward(); // servo control on the way back the hall
 				}
 				break;
->>>>>>> branch 'master' of https://github.com/AllProD1/stm32Rover.git
 		    }
 
 
