@@ -70,14 +70,14 @@ char buffer[6];
 uint32_t servo_millis=0;
 uint32_t servo_state=0; //State 2 is left or right, state 1 is forward.
 
-
+// enum for the robot movement state machine
 typedef enum {
     STATE_DRIVING,
     STATE_PAUSING,
     STATE_TURNING
 } RobotState;
 
-RobotState robot_state = STATE_DRIVING;
+RobotState robot_state = STATE_DRIVING; // start the state machine in driving forwards
 uint32_t   motor_millis = 0;
 
 /* USER CODE END PV */
@@ -91,7 +91,8 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-// LED CODE STUFFF YAYYAYAYYA
+// LED CODE WE HAD ISSUES WITH THIS DURING TESTING THE BRAKE LIGHTS
+// COMMENTING IT OUT FIXED THE ISSUES SHOULD CONSIDER REMOVING IT SOON
 
 //void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 //	if (htim->Instance == TIM4) {
