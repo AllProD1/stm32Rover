@@ -26,8 +26,8 @@ void HEADLIGHTS(void) {
 HAL_GPIO_TogglePin(HEADLIGHT_GPIO_Port, HEADLIGHT_Pin);
 }
 
-void HORN(void) {
-HAL_GPIO_TogglePin(HORN_GPIO_Port, HORN_Pin);
+void HORN(GPIO_PinState state) {
+HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, state);
 }
 
 
