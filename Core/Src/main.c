@@ -72,12 +72,13 @@ uint32_t servo_state=0; //State 2 is left or right, state 1 is forward.
 
 // enum for the robot movement state machine
 typedef enum {
-    STATE_DRIVING,
+    STATE_DRIVING_FORWARD,
     STATE_PAUSING,
-    STATE_TURNING
+    STATE_TURNING,
+	STATE_DRIVING_BACK
 } RobotState;
 
-RobotState robot_state = STATE_DRIVING; // start the state machine in driving forwards
+RobotState robot_state = STATE_DRIVING_FORWARD; // start the state machine in driving forwards
 uint32_t   motor_millis = 0;
 
 /* USER CODE END PV */
@@ -323,10 +324,12 @@ void bist(void){
 	  }
 	  HEADLIGHTS();
 
+	  horn = 1;
 	  HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, GPIO_PIN_SET);
-	  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 500;) {
+	  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 2000;) {
 
 	  }
+	  horn = 0;
 	  HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, GPIO_PIN_RESET);
 
 	  left_turn_active = 1;
@@ -340,6 +343,9 @@ void bist(void){
 
 	  }
 	  right_turn_active = 0;
+
+
+
 }
 
 
@@ -429,6 +435,9 @@ int main(void)
   while (1)
   {
 
+	  //bist();
+
+
 	  // tasks that are always running
 
 		HeartBeat();
@@ -437,9 +446,6 @@ int main(void)
 
 		// logic to control movement for the project phase
 
-
-
-		moveServo_right_forward(); // servo control on the way down the hall
 
 
 
@@ -452,7 +458,7 @@ int main(void)
 		 switch (robot_state)
 		  {
 		 	 // default drive forward that stops when 2ft from object sets break lights
-		    case STATE_DRIVING:
+		    case STATE_DRIVING_FORWARD:
 		        if (readaltra() <= 60.0 && servo_state == 1){
 		            BREAKLIGHTS(GPIO_PIN_SET);
 		            stop();
@@ -461,6 +467,7 @@ int main(void)
 		        } else {
 		            BREAKLIGHTS(GPIO_PIN_RESET);
 		            forward();
+		            moveServo_right_forward(); // servo control on the way down the hall
 		        }
 		        break;
 
@@ -468,7 +475,7 @@ int main(void)
 		     // will go back to driving forward if it is not a wall otherwise to moves on to turn around
 		    case STATE_PAUSING:
 		        if (readaltra() > 60.0 && servo_state == 1){
-		            robot_state = STATE_DRIVING;           // path cleared
+		            robot_state = STATE_DRIVING_FORWARD;           // path cleared
 		        } else if (HAL_GetTick() - motor_millis >= 3000){
 		            turn_around();
 		            motor_millis = HAL_GetTick();
@@ -480,12 +487,25 @@ int main(void)
 
 		     // this is the turning around case that counts how long it turns around before moving forward again
 		    case STATE_TURNING:
-		        if (HAL_GetTick() - motor_millis >= 9000){
+		        if (HAL_GetTick() - motor_millis >= 7200){
 		            stop();
 		            BREAKLIGHTS(GPIO_PIN_RESET);
-		            robot_state = STATE_DRIVING;
+		            robot_state = STATE_DRIVING_BACK;
 		        }
 		        break;
+
+		    case STATE_DRIVING_BACK:
+		    		        if (readaltra() <= 60.0 && servo_state == 1){
+		    		            BREAKLIGHTS(GPIO_PIN_SET);
+		    		            stop();
+		    		            motor_millis = HAL_GetTick();
+		    		            robot_state = STATE_PAUSING;
+		    		        } else {
+		    		            BREAKLIGHTS(GPIO_PIN_RESET);
+		    		            forward();
+		    		            moveServo_left_forward(); // servo control on the way back the hall
+		    		        }
+		    		        break;
 		    }
 
 
