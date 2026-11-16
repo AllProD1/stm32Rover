@@ -70,6 +70,16 @@ char buffer[6];
 uint32_t servo_millis=0;
 uint32_t servo_state=0; //State 2 is left or right, state 1 is forward.
 
+
+typedef enum {
+    STATE_DRIVING,
+    STATE_PAUSING,
+    STATE_TURNING
+} RobotState;
+
+RobotState robot_state = STATE_DRIVING;
+uint32_t   motor_millis = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -144,11 +154,8 @@ float readaltra(void){
 }
 
 
-// MOVE MOTORS
+// MOVE MOTORS FORWARDS
 void forward(void) {
-
-	// turn off break lights for stopping
-
 
 
 		// Right, forwards
@@ -167,7 +174,7 @@ void forward(void) {
 
 }
 
-// backwards
+// MOVE MOTORS BACKWORDS
 void backward(void){
 
 		// Right, backwards
@@ -187,12 +194,9 @@ void backward(void){
 }
 
 
-
-
 // STOP MOTORS
 void stop(void) {
 
-		// break lights for stopping
 
 		// Right, stop
 		double R_Speed = (50.0/100.0)*(4000);
@@ -210,7 +214,28 @@ void stop(void) {
 
 }
 
-// servo stuff
+
+//TURN AROUND IN A 180
+void turn_around(void){
+
+	// Right, forwards
+			double R_Speed = (50.0/100.0)*(4000);
+			HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+			TIM3->CCR1 = R_Speed;
+			HAL_GPIO_WritePin(L298N_IN1_GPIO_Port, L298N_IN1_Pin, 0);
+			HAL_GPIO_WritePin(L298N_IN2_GPIO_Port, L298N_IN2_Pin, 1);
+	// Left, backwards
+			double L_Speed = (55.55/100.0)*(4000);
+			HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+			TIM3->CCR2 = L_Speed;
+			HAL_GPIO_WritePin(L298N_IN3_GPIO_Port, L298N_IN3_Pin, 0);
+			HAL_GPIO_WritePin(L298N_IN4_GPIO_Port, L298N_IN4_Pin, 1);
+
+}
+
+
+
+// SERVO CODE TO PING ON WAY DOWN
 
 void moveServo_right_forward(void){
 
@@ -235,6 +260,10 @@ void moveServo_right_forward(void){
 
 }
 
+
+// SERVO CODE TO PING ON WAY BACK
+
+
 void moveServo_left_forward(void){
 	if (servo_millis == 0){
 			servo_millis = HAL_GetTick();
@@ -253,7 +282,8 @@ else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 1){
 }
 
 
-// bat mon stuff
+
+// BATTERY MONITORING FUNCTION THAT KILLS ROBOT IF LOW POWER
 
 void battery_voltage_shutdown(void){
 	// bat mon shut down stuff
@@ -279,7 +309,7 @@ void battery_voltage_shutdown(void){
 
 
 
-// start up command
+// START UP COMMAND TO SHOW ALL LIGHTS AND THE HORN SYSTEM WORK PER REQUIREMENTS
 
 void bist(void){
 	 //  more led stuff
@@ -404,20 +434,54 @@ int main(void)
 		// logic to control movement for the project phase
 
 
-		moveServo_right_forward();
+
+		moveServo_right_forward(); // servo control on the way down the hall
 
 
-		forward();
 
-		// stops in 2 feet
-		if (readaltra()<= 60.0 && servo_state == 1){
-			BREAKLIGHTS(GPIO_PIN_SET);
-			while(readaltra()<= 60.0 && servo_state == 1)
-			stop();
-		} else {
-			BREAKLIGHTS(GPIO_PIN_RESET);
-		}
-		turn_around();
+		// THIS SWITCH BELOW IS HUGE should help us going forward
+		// Lachlan you should be able to set up your own cases that will correct it left vs. right
+		// I also think the timer here may help us remember where we started I am not sure though
+
+
+		// switch loop to control the conditions for driving the robot
+		 switch (robot_state)
+		  {
+		 	 // default drive forward that stops when 2ft from object sets break lights
+		    case STATE_DRIVING:
+		        if (readaltra() <= 60.0 && servo_state == 1){
+		            BREAKLIGHTS(GPIO_PIN_SET);
+		            stop();
+		            motor_millis = HAL_GetTick();
+		            robot_state = STATE_PAUSING;
+		        } else {
+		            BREAKLIGHTS(GPIO_PIN_RESET);
+		            forward();
+		        }
+		        break;
+
+		     // state to wait 3 seconds to make sure it is wall and not random obstacle person or bad data
+		     // will go back to driving forward if it is not a wall otherwise to moves on to turn around
+		    case STATE_PAUSING:
+		        if (readaltra() > 60.0 && servo_state == 1){
+		            robot_state = STATE_DRIVING;           // path cleared
+		        } else if (HAL_GetTick() - motor_millis >= 3000){
+		            turn_around();
+		            motor_millis = HAL_GetTick();
+		            robot_state = STATE_TURNING;
+		        }
+		        break;
+
+
+		     // this is the turning around case that counts how long it turns around before moving forward again
+		    case STATE_TURNING:
+		        if (HAL_GetTick() - motor_millis >= 9000){
+		            stop();
+		            BREAKLIGHTS(GPIO_PIN_RESET);
+		            robot_state = STATE_DRIVING;
+		        }
+		        break;
+		    }
 
 
 
