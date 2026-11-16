@@ -164,89 +164,6 @@ float readaltra(void){
 }
 
 
-// MOVE MOTORS FORWARDS
-//void forward(void) {
-//
-//
-//		// Right, forwards
-//		double R_Speed = (50.0/100.0)*(4000);
-//		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-//		TIM3->CCR1 = R_Speed;
-//		HAL_GPIO_WritePin(L298N_IN1_GPIO_Port, L298N_IN1_Pin, 0);
-//		HAL_GPIO_WritePin(L298N_IN2_GPIO_Port, L298N_IN2_Pin, 1);
-//
-//		// Left, forwards
-//		double L_Speed = (55.55/100.0)*(4000);
-//		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-//		TIM3->CCR2 = L_Speed;
-//		HAL_GPIO_WritePin(L298N_IN3_GPIO_Port, L298N_IN3_Pin, 1);
-//		HAL_GPIO_WritePin(L298N_IN4_GPIO_Port, L298N_IN4_Pin, 0);
-//
-//}
-//
-//// MOVE MOTORS BACKWORDS
-//void backward(void){
-//
-//		// Right, backwards
-//		double R_Speed = (50.0/100.0)*(4000);
-//		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-//		TIM3->CCR1 = R_Speed;
-//		HAL_GPIO_WritePin(L298N_IN1_GPIO_Port, L298N_IN1_Pin, 1);
-//		HAL_GPIO_WritePin(L298N_IN2_GPIO_Port, L298N_IN2_Pin, 0);
-//
-//		// Left, backwards
-//		double L_Speed = (55.55/100.0)*(4000);
-//		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-//		TIM3->CCR2 = L_Speed;
-//		HAL_GPIO_WritePin(L298N_IN3_GPIO_Port, L298N_IN3_Pin, 0);
-//		HAL_GPIO_WritePin(L298N_IN4_GPIO_Port, L298N_IN4_Pin, 1);
-//
-//}
-//
-//
-//// STOP MOTORS
-//void stop(void) {
-//
-//
-//		// Right, stop
-//		double R_Speed = (50.0/100.0)*(4000);
-//		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-//		TIM3->CCR1 = R_Speed;
-//		HAL_GPIO_WritePin(L298N_IN1_GPIO_Port, L298N_IN1_Pin, 0);
-//		HAL_GPIO_WritePin(L298N_IN2_GPIO_Port, L298N_IN2_Pin, 0);
-//
-//		// Left, stop
-//		double L_Speed = (55.55/100.0)*(4000);
-//		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-//		TIM3->CCR2 = L_Speed;
-//		HAL_GPIO_WritePin(L298N_IN3_GPIO_Port, L298N_IN3_Pin, 0);
-//		HAL_GPIO_WritePin(L298N_IN4_GPIO_Port, L298N_IN4_Pin, 0);
-//
-//}
-//
-//
-////TURN AROUND IN A 180
-//void turn_around(void){
-//
-//	// need to turn on left turn signal as that is the turn the robot makes
-//			left_turn_active = 1;
-//
-//	// Right, forwards
-//			double R_Speed = (50.0/100.0)*(4000);
-//			HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-//			TIM3->CCR1 = R_Speed;
-//			HAL_GPIO_WritePin(L298N_IN1_GPIO_Port, L298N_IN1_Pin, 0);
-//			HAL_GPIO_WritePin(L298N_IN2_GPIO_Port, L298N_IN2_Pin, 1);
-//	// Left, backwards
-//			double L_Speed = (55.55/100.0)*(4000);
-//			HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-//			TIM3->CCR2 = L_Speed;
-//			HAL_GPIO_WritePin(L298N_IN3_GPIO_Port, L298N_IN3_Pin, 0);
-//			HAL_GPIO_WritePin(L298N_IN4_GPIO_Port, L298N_IN4_Pin, 1);
-//
-//}
-//
-
 
 // SERVO CODE TO PING ON WAY DOWN
 
@@ -258,12 +175,12 @@ void moveServo_right_forward(void){
 		servo_millis = HAL_GetTick();
 		servo_state = 1;
 	}
-	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 1){
+	else if (HAL_GetTick() - servo_millis >= 2000 && HAL_GetTick() - servo_millis >= 1000  && servo_state == 1){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 500);   // ~0°
 		servo_millis = HAL_GetTick(); //Reset Back to 0
 		servo_state = 2;
 	}
-	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 2){
+	else if (HAL_GetTick() - servo_millis >= 2000 && HAL_GetTick() - servo_millis >= 1000 && servo_state == 2){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~90°
 		servo_millis = 0; //Reset Back to 0
 		servo_state = 1;
@@ -282,12 +199,12 @@ void moveServo_left_forward(void){
 			servo_millis = HAL_GetTick();
 			servo_state = 1;
 	}
-else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 1){
+else if (HAL_GetTick() - servo_millis >= 2000 && HAL_GetTick() - servo_millis >= 1500 && servo_state == 1){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 2500);   // ~180°
 		servo_millis = HAL_GetTick(); //Reset Back to 0
 		servo_state = 2;
 	}
-	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 2){
+	else if (HAL_GetTick() - servo_millis >= 2000 && HAL_GetTick() - servo_millis >= 1500 && servo_state == 2){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~90°
 		servo_millis = 0; //Reset Back to 0
 		servo_state = 1;
@@ -454,9 +371,10 @@ int main(void)
 
 
 		// This should stop the rover on the way back. Subtracting 7200 for the time it takes to turn around.
-		if (HAL_GetTick() - stopTime - 7200 >= diffTime) {
-			stop();
-		}
+		//TODO: This acutally just breaks the code since stopTime is currently. BEN, THIS IS WHY YOU HAD TO ADD THE STATE/CHECK IF IT WAS DRIVING BACK.
+//		if (HAL_GetTick() - stopTime - 7200 >= diffTime) {
+//			stop();
+//		}
 
 
 		// THIS SWITCH BELOW IS HUGE should help us going forward
@@ -519,21 +437,10 @@ int main(void)
 		    	break;
 
 		    case STATE_PURELY_PAUSING:
-		    		        if (readaltra() > 60.0 && servo_state == 1){
-		    		            robot_state = STATE_DRIVING_BACK;           // path cleared
-		    		        }
-		        break;
-				if (readaltra() <= 60.0 && servo_state == 1){
-					BREAKLIGHTS(GPIO_PIN_SET);
-					stop();
-					motor_millis = HAL_GetTick();
-					robot_state = STATE_PAUSING;
-				} else {
-					BREAKLIGHTS(GPIO_PIN_RESET);
-					forward();
-					moveServo_left_forward(); // servo control on the way back the hall
-				}
-				break;
+			if (readaltra() > 60.0 && servo_state == 1){
+				robot_state = STATE_DRIVING_BACK;           // path cleared
+			}
+			break;
 		    }
 
 
