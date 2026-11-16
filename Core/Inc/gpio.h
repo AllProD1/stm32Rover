@@ -41,7 +41,7 @@ void MX_GPIO_Init(void);
 /* USER CODE BEGIN Prototypes */
 void HeartBeat(void);
 void HEADLIGHTS(void);
-void HORN(void);
+void HORN(GPIO_PinState state);
 void BREAKLIGHTS(GPIO_PinState state);
 
 /* USER CODE END Prototypes */

@@ -73,9 +73,10 @@ uint32_t servo_state=0; //State 2 is left or right, state 1 is forward.
 // enum for the robot movement state machine
 typedef enum {
     STATE_DRIVING_FORWARD,
-    STATE_PAUSING,
-    STATE_TURNING,
-	STATE_DRIVING_BACK
+	STATE_PAUSING_To_TURN,
+	STATE_STOP_TURNING,
+	STATE_DRIVING_BACK,
+	STATE_PURELY_PAUSING
 } RobotState;
 
 RobotState robot_state = STATE_DRIVING_FORWARD; // start the state machine in driving forwards
@@ -250,12 +251,12 @@ void moveServo_right_forward(void){
 		servo_millis = HAL_GetTick();
 		servo_state = 1;
 	}
-	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 1){
+	else if (HAL_GetTick() - servo_millis >= 1000 && servo_state == 1){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 500);   // ~0°
 		servo_millis = HAL_GetTick(); //Reset Back to 0
 		servo_state = 2;
 	}
-	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 2){
+	else if (HAL_GetTick() - servo_millis >= 1000 && servo_state == 2){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~90°
 		servo_millis = 0; //Reset Back to 0
 		servo_state = 1;
@@ -274,12 +275,12 @@ void moveServo_left_forward(void){
 			servo_millis = HAL_GetTick();
 			servo_state = 1;
 	}
-else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 1){
+else if (HAL_GetTick() - servo_millis >= 1000 && servo_state == 1){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 2500);   // ~180°
 		servo_millis = HAL_GetTick(); //Reset Back to 0
 		servo_state = 2;
 	}
-	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 2){
+	else if (HAL_GetTick() - servo_millis >= 1000 && servo_state == 2){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~90°
 		servo_millis = 0; //Reset Back to 0
 		servo_state = 1;
@@ -324,13 +325,13 @@ void bist(void){
 	  }
 	  HEADLIGHTS();
 
-	  horn = 1;
-	  HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, GPIO_PIN_SET);
+	 // horn = 1;
+	  HORN(GPIO_PIN_SET);
 	  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 2000;) {
 
 	  }
-	  horn = 0;
-	  HAL_GPIO_WritePin(HORN_GPIO_Port, HORN_Pin, GPIO_PIN_RESET);
+	 // horn = 0;
+	  HORN(GPIO_PIN_RESET);
 
 	  left_turn_active = 1;
 	  for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 2000;) {
@@ -463,7 +464,7 @@ int main(void)
 		            BREAKLIGHTS(GPIO_PIN_SET);
 		            stop();
 		            motor_millis = HAL_GetTick();
-		            robot_state = STATE_PAUSING;
+		            robot_state = STATE_PAUSING_To_TURN;
 		        } else {
 		            BREAKLIGHTS(GPIO_PIN_RESET);
 		            forward();
@@ -473,21 +474,21 @@ int main(void)
 
 		     // state to wait 3 seconds to make sure it is wall and not random obstacle person or bad data
 		     // will go back to driving forward if it is not a wall otherwise to moves on to turn around
-		    case STATE_PAUSING:
+		    case STATE_PAUSING_To_TURN:
 		        if (readaltra() > 60.0 && servo_state == 1){
 		            robot_state = STATE_DRIVING_FORWARD;           // path cleared
 		        } else if (HAL_GetTick() - motor_millis >= 3000){
 		            turn_around();
 		            motor_millis = HAL_GetTick();
-		            robot_state = STATE_TURNING;
+		            robot_state = STATE_STOP_TURNING;
 		        }
 		        left_turn_active = 0; // should turn the turn sign
 		        break;
 
 
 		     // this is the turning around case that counts how long it turns around before moving forward again
-		    case STATE_TURNING:
-		        if (HAL_GetTick() - motor_millis >= 7200){
+		    case STATE_STOP_TURNING:
+		        if (HAL_GetTick() - motor_millis >= 7600){
 		            stop();
 		            BREAKLIGHTS(GPIO_PIN_RESET);
 		            robot_state = STATE_DRIVING_BACK;
@@ -495,17 +496,23 @@ int main(void)
 		        break;
 
 		    case STATE_DRIVING_BACK:
-		    		        if (readaltra() <= 60.0 && servo_state == 1){
-		    		            BREAKLIGHTS(GPIO_PIN_SET);
-		    		            stop();
-		    		            motor_millis = HAL_GetTick();
-		    		            robot_state = STATE_PAUSING;
-		    		        } else {
-		    		            BREAKLIGHTS(GPIO_PIN_RESET);
-		    		            forward();
-		    		            moveServo_left_forward(); // servo control on the way back the hall
+		    	if (readaltra() <= 60.0 && servo_state == 1){
+		    		BREAKLIGHTS(GPIO_PIN_SET);
+		    		stop();
+		    		motor_millis = HAL_GetTick();
+		    		robot_state = STATE_PURELY_PAUSING;
+		        } else {
+		        	BREAKLIGHTS(GPIO_PIN_RESET);
+		    	    forward();
+		    	    moveServo_left_forward(); // servo control on the way back the hall
+		    	}
+		    	break;
+
+		    case STATE_PURELY_PAUSING:
+		    		        if (readaltra() > 60.0 && servo_state == 1){
+		    		            robot_state = STATE_DRIVING_BACK;           // path cleared
 		    		        }
-		    		        break;
+		        break;
 		    }
 
 
