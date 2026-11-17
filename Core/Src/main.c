@@ -59,7 +59,7 @@
 //uint8_t right_turn_active = 0;
 uint8_t horn = 0;
 
-uint8_t stop_distance = 75; // in cm ok
+uint8_t stop_distance = 75; // in cm
 
 
 #define TRIG_PIN GPIO_PIN_15
@@ -140,30 +140,32 @@ void SystemClock_Config(void);
 // READ ULTRA PINGER
 float readaltra(void){
 
-	HAL_GPIO_WritePin(TRIG_PORT, TRIG_PIN, GPIO_PIN_SET);  // pull the TRIG pin HIGH
-	__HAL_TIM_SET_COUNTER(&htim12, 0);
-	while (__HAL_TIM_GET_COUNTER (&htim12) < 10);  // wait for 10 us
-	HAL_GPIO_WritePin(TRIG_PORT, TRIG_PIN, GPIO_PIN_RESET);  // pull the TRIG pin low
 
-	pMillis = HAL_GetTick(); // used this to avoid infinite while loop  (for timeout)
-	// wait for the echo pin to go high
-	while (!(HAL_GPIO_ReadPin (ECHO_PORT, ECHO_PIN)) && pMillis + 10 >  HAL_GetTick());
-	Value1 = __HAL_TIM_GET_COUNTER (&htim12);
+		   HAL_GPIO_WritePin(TRIG_PORT, TRIG_PIN, GPIO_PIN_SET);  // pull the TRIG pin HIGH
+	       __HAL_TIM_SET_COUNTER(&htim12, 0);
+	       while (__HAL_TIM_GET_COUNTER (&htim12) < 10);  // wait for 10 us
+	       HAL_GPIO_WritePin(TRIG_PORT, TRIG_PIN, GPIO_PIN_RESET);  // pull the TRIG pin low
 
-	pMillis = HAL_GetTick(); // used this to avoid infinite while loop (for timeout)
-	// wait for the echo pin to go low
-	while ((HAL_GPIO_ReadPin (ECHO_PORT, ECHO_PIN)) && pMillis + 50 > HAL_GetTick());
-	Value2 = __HAL_TIM_GET_COUNTER (&htim12);
+	       pMillis = HAL_GetTick(); // used this to avoid infinite while loop  (for timeout)
+	       // wait for the echo pin to go high
+	       while (!(HAL_GPIO_ReadPin (ECHO_PORT, ECHO_PIN)) && pMillis + 10 >  HAL_GetTick());
+	       Value1 = __HAL_TIM_GET_COUNTER (&htim12);
 
-	Distance = (Value2-Value1)* 0.034/2;
+	       pMillis = HAL_GetTick(); // used this to avoid infinite while loop (for timeout)
+	       // wait for the echo pin to go low
+	       while ((HAL_GPIO_ReadPin (ECHO_PORT, ECHO_PIN)) && pMillis + 50 > HAL_GetTick());
+	       Value2 = __HAL_TIM_GET_COUNTER (&htim12);
 
-	snprintf(buffer, sizeof(buffer), "%d", Distance);
-	HD44780_Clear();
-	HD44780_SetCursor(0,0);
-	HD44780_PrintStr(buffer);
-	HAL_Delay(50);
-	__enable_irq();
-	return Distance;
+	       Distance = (Value2-Value1)* 0.034/2;
+
+	       snprintf(buffer, sizeof(buffer), "%d", Distance);
+	       HD44780_Clear();
+	       HD44780_SetCursor(0,0);
+	       HD44780_PrintStr(buffer);
+	       HAL_Delay(50);
+
+
+	       return Distance;
 }
 
 
@@ -178,7 +180,7 @@ void moveServo_right_forward(void){
 		servo_millis = HAL_GetTick();
 		servo_state = 1;
 	}
-	else if (HAL_GetTick() - servo_millis >= 2000  && servo_state == 1){
+	else if (HAL_GetTick() - servo_millis >= 5000  && servo_state == 1){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 500);   // ~0°
 		servo_millis = HAL_GetTick(); //Reset Back to 0
 		servo_state = 2;
@@ -202,7 +204,7 @@ void moveServo_left_forward(void){
 			servo_millis = HAL_GetTick();
 			servo_state = 1;
 	}
-else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 1){
+else if (HAL_GetTick() - servo_millis >= 5000 && servo_state == 1){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 2500);   // ~180°
 		servo_millis = HAL_GetTick(); //Reset Back to 0
 		servo_state = 2;
@@ -343,7 +345,7 @@ int main(void)
     HD44780_Clear();
     HD44780_SetCursor(0,0);
     HD44780_PrintStr("HC-SR04");
-    HAL_Delay(250);
+    HAL_Delay(500);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -358,6 +360,7 @@ int main(void)
   // startup for leds and horn
 //  bist();
 
+  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~0°
 
   startTime = HAL_GetTick(); // start the "timer" for how long it takes to go down the hall (one way)
   while (1)
@@ -373,10 +376,13 @@ int main(void)
 
 
 
-		// This should stop the rover on the way back. Subtracting 7200 for the time it takes to turn around.
-		//TODO: This actually just breaks the code since stopTime is currently. BEN, THIS IS WHY YOU HAD TO ADD THE STATE/CHECK IF IT WAS DRIVING BACK.
-		if (HAL_GetTick() - stopTime - 7200 >= diffTime && robot_state == STATE_DRIVING_BACK) {
+		// This should stop the rover on the way back. Subtracting 7600 for the time it takes to turn around.
+		if (HAL_GetTick() - stopTime - 7600 >= diffTime && robot_state == STATE_DRIVING_BACK) {
 			stop();
+			BREAKLIGHTS(GPIO_PIN_SET);
+			for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 1000;) {}
+			BREAKLIGHTS(GPIO_PIN_RESET);
+			while(1){}
 		}
 
 
@@ -389,12 +395,11 @@ int main(void)
 		  {
 		 	 // default drive forward that stops when 2ft from object sets break lights
 		    case STATE_DRIVING_FORWARD:
-		        if (readaltra() <= 60.0 && servo_state == 1 && HAL_GetTick() - servo_millis >= 1000){
-		        	print(" I'm Braking!\r\n");
-					BREAKLIGHTS(GPIO_PIN_SET);
-					stop();
-					motor_millis = HAL_GetTick();
-					robot_state = STATE_PAUSING_To_TURN;
+		        if (readaltra() <= stop_distance && servo_state == 1 && HAL_GetTick() - servo_millis >= 500){
+		            BREAKLIGHTS(GPIO_PIN_SET);
+		            stop();
+		            motor_millis = HAL_GetTick();
+		            robot_state = STATE_PAUSING_To_TURN;
 		        } else {
 		            BREAKLIGHTS(GPIO_PIN_RESET);
 		            forward();
@@ -405,10 +410,10 @@ int main(void)
 		     // state to wait 3 seconds to make sure it is wall and not random obstacle person or bad data
 		     // will go back to driving forward if it is not a wall otherwise to moves on to turn around
 		    case STATE_PAUSING_To_TURN:
-		        if (readaltra() > 60.0 && servo_state == 1){
+		        if (readaltra() > stop_distance && servo_state == 1){
 		            robot_state = STATE_DRIVING_FORWARD;           // path cleared
 		        } else if (HAL_GetTick() - motor_millis >= 3000){
-		        		stopTime = HAL_GetTick(); // stop the "timer" for how long it takes to go down the hall one way
+		        		stopTime = HAL_GetTick(); // stop time for the "timer" for how long it takes to go down the hall one way
 		        		diffTime = stopTime - startTime - 3000; // subtract startTime from stopTime to determine how long it took, subtract 3000 for time waiting.
 		            turn_around();
 		            motor_millis = HAL_GetTick();
@@ -428,7 +433,7 @@ int main(void)
 		        break;
 
 		    case STATE_DRIVING_BACK:
-		    	if (readaltra() <= 60.0 && servo_state == 1 && HAL_GetTick() - servo_millis >= 1000){
+		    	if (readaltra() <= stop_distance && servo_state == 1 && HAL_GetTick() - servo_millis >= 500){
 		    		BREAKLIGHTS(GPIO_PIN_SET);
 		    		stop();
 		    		motor_millis = HAL_GetTick();
@@ -442,11 +447,12 @@ int main(void)
 
 		    case STATE_PURELY_PAUSING:
 
-			if (readaltra() > 60.0 && servo_state == 1){
+			if (readaltra() > stop_distance && servo_state == 1){
 				robot_state = STATE_DRIVING_BACK;           // path cleared
 			}
 			break;
 		    }
+
 
 
 
