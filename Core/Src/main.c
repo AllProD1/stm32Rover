@@ -204,12 +204,12 @@ void moveServo_left_forward(void){
 			servo_millis = HAL_GetTick();
 			servo_state = 1;
 	}
-else if (HAL_GetTick() - servo_millis >= 2000 && HAL_GetTick() - servo_millis >= 1500 && servo_state == 1){
+else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 1){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 2500);   // ~180°
 		servo_millis = HAL_GetTick(); //Reset Back to 0
 		servo_state = 2;
 	}
-	else if (HAL_GetTick() - servo_millis >= 2000 && HAL_GetTick() - servo_millis >= 1500 && servo_state == 2){
+	else if (HAL_GetTick() - servo_millis >= 5000 && servo_state == 2){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~90°
 		servo_millis = 0; //Reset Back to 0
 		servo_state = 1;
