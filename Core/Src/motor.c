@@ -20,19 +20,23 @@
 // LED VARRIBLES
 uint8_t left_turn_active = 0; // for turn signals, 0 = off, 1 = blinking
 uint8_t right_turn_active = 0;
+double right_percentage = 50.0;
+double left_percentage = 55.55;
+
 
 void forward(void) {
+		print("forward() called\r\n");
 
 
 		// Right, forwards
-		double R_Speed = (50.0/100.0)*(4000);
+		double R_Speed = (right_percentage/100.0)*(4000);
 		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 		TIM3->CCR1 = R_Speed;
 		HAL_GPIO_WritePin(L298N_IN1_GPIO_Port, L298N_IN1_Pin, 0);
 		HAL_GPIO_WritePin(L298N_IN2_GPIO_Port, L298N_IN2_Pin, 1);
 
 		// Left, forwards
-		double L_Speed = (55.55/100.0)*(4000);
+		double L_Speed = (left_percentage/100.0)*(4000);
 		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
 		TIM3->CCR2 = L_Speed;
 		HAL_GPIO_WritePin(L298N_IN3_GPIO_Port, L298N_IN3_Pin, 1);
@@ -44,14 +48,14 @@ void forward(void) {
 void backward(void){
 
 		// Right, backwards
-		double R_Speed = (50.0/100.0)*(4000);
+		double R_Speed = (right_percentage/100.0)*(4000);
 		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 		TIM3->CCR1 = R_Speed;
 		HAL_GPIO_WritePin(L298N_IN1_GPIO_Port, L298N_IN1_Pin, 1);
 		HAL_GPIO_WritePin(L298N_IN2_GPIO_Port, L298N_IN2_Pin, 0);
 
 		// Left, backwards
-		double L_Speed = (55.55/100.0)*(4000);
+		double L_Speed = (left_percentage/100.0)*(4000);
 		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
 		TIM3->CCR2 = L_Speed;
 		HAL_GPIO_WritePin(L298N_IN3_GPIO_Port, L298N_IN3_Pin, 0);

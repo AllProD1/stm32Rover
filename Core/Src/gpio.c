@@ -107,7 +107,7 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 2 */
-#define HB_PER_V_2 1000
+#define HB_PER_V_2 250
 
 void HeartBeat(void) {
 	static uint32_t t1 = 0;
