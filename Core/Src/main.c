@@ -414,9 +414,11 @@ int main(void)
 		// This should stop the rover on the way back. Subtracting 7200 for the time it takes to turn around.
 		//TODO: This actually just breaks the code since stopTime is currently. BEN, THIS IS WHY YOU HAD TO ADD THE STATE/CHECK IF IT WAS DRIVING BACK.
 		if (HAL_GetTick() - stopTime - 7200 >= diffTime && robot_state == STATE_DRIVING_BACK) {
-			while(1){
 				stop();
-			}
+				BREAKLIGHTS(GPIO_PIN_SET);
+				for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 1000;) {}
+				BREAKLIGHTS(GPIO_PIN_SET);
+				while(1){}
 		}
 
 
