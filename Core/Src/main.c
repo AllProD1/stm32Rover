@@ -376,11 +376,14 @@ int main(void)
 
 
 
-		// This should stop the rover on the way back. Subtracting 7200 for the time it takes to turn around.
-		//TODO: This acutally just breaks the code since stopTime is currently. BEN, THIS IS WHY YOU HAD TO ADD THE STATE/CHECK IF IT WAS DRIVING BACK.
-//		if (HAL_GetTick() - stopTime - 7200 >= diffTime) {
-//			stop();
-//		}
+		// This should stop the rover on the way back. Subtracting 7600 for the time it takes to turn around.
+		if (HAL_GetTick() - stopTime - 7600 >= diffTime && robot_state == STATE_DRIVING_BACK) {
+			stop();
+			BREAKLIGHTS(GPIO_PIN_SET);
+			for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 1000;) {}
+			BREAKLIGHTS(GPIO_PIN_RESET);
+			while(1){}
+		}
 
 
 		// THIS SWITCH BELOW IS HUGE should help us going forward
@@ -410,7 +413,7 @@ int main(void)
 		        if (readaltra() > stop_distance && servo_state == 1){
 		            robot_state = STATE_DRIVING_FORWARD;           // path cleared
 		        } else if (HAL_GetTick() - motor_millis >= 3000){
-		        		stopTime = HAL_GetTick(); // stop the "timer" for how long it takes to go down the hall one way
+		        		stopTime = HAL_GetTick(); // stop time for the "timer" for how long it takes to go down the hall one way
 		        		diffTime = stopTime - startTime - 3000; // subtract startTime from stopTime to determine how long it took, subtract 3000 for time waiting.
 		            turn_around();
 		            motor_millis = HAL_GetTick();
