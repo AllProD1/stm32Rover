@@ -437,18 +437,11 @@ int main(void)
 		    	break;
 
 		    case STATE_PURELY_PAUSING:
-<<<<<<< HEAD
-		    		        if (readaltra() > 60.0 && servo_state == 1){
-		    		            robot_state = STATE_DRIVING_BACK;           // path cleared
-		    		        }
-		        break;
 
-=======
 			if (readaltra() > 60.0 && servo_state == 1){
 				robot_state = STATE_DRIVING_BACK;           // path cleared
 			}
 			break;
->>>>>>> branch 'master' of https://github.com/AllProD1/stm32Rover.git
 		    }
 
 
