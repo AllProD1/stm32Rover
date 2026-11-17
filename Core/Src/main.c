@@ -61,6 +61,8 @@ uint8_t horn = 0;
 
 uint8_t stop_distance = 75; // in cm ok
 
+uint8_t turn_around_time = 3600;
+
 
 #define TRIG_PIN GPIO_PIN_15
 #define TRIG_PORT GPIOB
@@ -412,7 +414,7 @@ int main(void)
 
 
 		// This should stop the rover on the way back. Subtracting 7200 for the time it takes to turn around.
-		if (HAL_GetTick() - stopTime - 7200 >= diffTime && robot_state == STATE_DRIVING_BACK) {
+		if (HAL_GetTick() - stopTime - turn_around_time >= diffTime && robot_state == STATE_DRIVING_BACK) {
 				stop();
 				BREAKLIGHTS(GPIO_PIN_SET);
 				for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 1000;) {}
@@ -430,7 +432,7 @@ int main(void)
 		  {
 		 	 // default drive forward that stops when 2ft from object sets break lights
 		    case STATE_DRIVING_FORWARD:
-		        if (readaltra() <= stop_distance0 && servo_state == 1 && HAL_GetTick() - servo_millis >= 300){
+		        if (readaltra() <= stop_distance && servo_state == 1 && HAL_GetTick() - servo_millis >= 300){
 		        	print(" I'm Braking!\r\n");
 					BREAKLIGHTS(GPIO_PIN_SET);
 					stop();
@@ -445,7 +447,7 @@ int main(void)
 		                float d = readaltra();
 		                const float target   = 105.0f;
 		                const float deadband = 6.0f;
-		                const float kp       = 0.020f;   // tune this
+		                const float kp       = 0.0350f;   // tune this
 
 		                if (d > 15.0f && d < 250.0f) {
 		                    float error = d - target;   // + = too far, − = too close
@@ -505,7 +507,7 @@ int main(void)
 
 		     // this is the turning around case that counts how long it turns around before moving forward again
 		    case STATE_STOP_TURNING:
-		        if (HAL_GetTick() - motor_millis >= 7600){
+		        if (HAL_GetTick() - motor_millis >= turn_around_time){
 		            stop();
 		            left_turn_active = 0;          // stop blinking
 					right_turn_active = 0;
