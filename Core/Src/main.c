@@ -158,11 +158,16 @@ float readaltra(void){
 	Distance = (Value2-Value1)* 0.034/2;
 
 	snprintf(buffer, sizeof(buffer), "%d", Distance);
-	HD44780_Clear();
-	HD44780_SetCursor(0,0);
-	HD44780_PrintStr(buffer);
+	char out[16];
+	snprintf(out, sizeof(out), " %s\r\n", buffer);
 	HAL_Delay(50);
-	__enable_irq();
+	print("%s", out);
+
+//	HD44780_Clear();
+//	HD44780_SetCursor(0,0);
+//	HD44780_PrintStr(buffer);
+//	HAL_Delay(50);
+//	__enable_irq();
 	return Distance;
 }
 
@@ -177,16 +182,19 @@ void moveServo_right_forward(void){
 	if (servo_millis == 0){
 		servo_millis = HAL_GetTick();
 		servo_state = 1;
+		print(" Change state to 1.")
 	}
 	else if (HAL_GetTick() - servo_millis >= 2000  && servo_state == 1){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 500);   // ~0°
 		servo_millis = HAL_GetTick(); //Reset Back to 0
 		servo_state = 2;
+		print(" Change state to 2.")
 	}
 	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 2){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~90°
-		servo_millis = 0; //Reset Back to 0
+		servo_millis = HAL_GetTick();
 		servo_state = 1;
+		print(" Change back to state to 1.")
 	}
 
 //	if(servo_millis- HAL_GetTick())
@@ -209,7 +217,7 @@ else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 1){
 	}
 	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 2){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~90°
-		servo_millis = 0; //Reset Back to 0
+		servo_millis = HAL_GetTick(); //Reset Back to 0
 		servo_state = 1;
 	}
 }
@@ -368,6 +376,7 @@ int main(void)
 		HeartBeat();
 		Command_Proc();
 		battery_voltage_shutdown();
+
 
 		// logic to control movement for the project phase
 
