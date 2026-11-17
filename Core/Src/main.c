@@ -59,7 +59,7 @@
 //uint8_t right_turn_active = 0;
 uint8_t horn = 0;
 
-uint8_t stop_distance = 60; // in cm ok
+uint8_t stop_distance = 75; // in cm ok
 
 
 #define TRIG_PIN GPIO_PIN_15
@@ -430,7 +430,7 @@ int main(void)
 		  {
 		 	 // default drive forward that stops when 2ft from object sets break lights
 		    case STATE_DRIVING_FORWARD:
-		        if (readaltra() <= 60.0 && servo_state == 1 && HAL_GetTick() - servo_millis >= 300){
+		        if (readaltra() <= stop_distance0 && servo_state == 1 && HAL_GetTick() - servo_millis >= 300){
 		        	print(" I'm Braking!\r\n");
 					BREAKLIGHTS(GPIO_PIN_SET);
 					stop();
@@ -490,7 +490,7 @@ int main(void)
 		     // state to wait 3 seconds to make sure it is wall and not random obstacle person or bad data
 		     // will go back to driving forward if it is not a wall otherwise to moves on to turn around
 		    case STATE_PAUSING_To_TURN:
-		        if (readaltra() > 60.0 && servo_state == 1){
+		        if (readaltra() > stop_distance && servo_state == 1){
 		            robot_state = STATE_DRIVING_FORWARD;           // path cleared
 		        } else if (HAL_GetTick() - motor_millis >= 3000){
 		        		stopTime = HAL_GetTick(); // stop the "timer" for how long it takes to go down the hall one way
@@ -515,7 +515,7 @@ int main(void)
 		        break;
 
 		    case STATE_DRIVING_BACK:
-		    	if (readaltra() <= 60.0 && servo_state == 1 && HAL_GetTick() - servo_millis >= 300){
+		    	if (readaltra() <= stop_distance && servo_state == 1 && HAL_GetTick() - servo_millis >= 300){
 		    		BREAKLIGHTS(GPIO_PIN_SET);
 		    		stop();
 		    		motor_millis = HAL_GetTick();
@@ -562,7 +562,7 @@ int main(void)
 
 		    case STATE_PURELY_PAUSING:
 
-			if (readaltra() > 60.0 && servo_state == 1){
+			if (readaltra() > stop_distance && servo_state == 1){
 				robot_state = STATE_DRIVING_BACK;           // path cleared
 			}
 			break;
