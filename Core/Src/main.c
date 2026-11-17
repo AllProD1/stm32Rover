@@ -59,6 +59,8 @@
 //uint8_t right_turn_active = 0;
 uint8_t horn = 0;
 
+uint8_t stop_distance = 75; // in cm
+
 
 #define TRIG_PIN GPIO_PIN_15
 #define TRIG_PORT GPIOB
