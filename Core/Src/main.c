@@ -59,7 +59,7 @@
 //uint8_t right_turn_active = 0;
 uint8_t horn = 0;
 
-uint8_t stop_distance = 75; // in cm
+uint8_t stop_distance = 60; // in cm ok
 
 
 #define TRIG_PIN GPIO_PIN_15
@@ -79,7 +79,7 @@ uint32_t startTime = 0;
 uint32_t stopTime = 0;
 uint32_t diffTime = 0;
 
-// enum for the robot movement state machine
+// enum for the robot movement state machines
 typedef enum {
     STATE_DRIVING_FORWARD,
 	STATE_PAUSING_To_TURN,
@@ -140,32 +140,35 @@ void SystemClock_Config(void);
 // READ ULTRA PINGER
 float readaltra(void){
 
+	HAL_GPIO_WritePin(TRIG_PORT, TRIG_PIN, GPIO_PIN_SET);  // pull the TRIG pin HIGH
+	__HAL_TIM_SET_COUNTER(&htim12, 0);
+	while (__HAL_TIM_GET_COUNTER (&htim12) < 10);  // wait for 10 us
+	HAL_GPIO_WritePin(TRIG_PORT, TRIG_PIN, GPIO_PIN_RESET);  // pull the TRIG pin low
 
-		   HAL_GPIO_WritePin(TRIG_PORT, TRIG_PIN, GPIO_PIN_SET);  // pull the TRIG pin HIGH
-	       __HAL_TIM_SET_COUNTER(&htim12, 0);
-	       while (__HAL_TIM_GET_COUNTER (&htim12) < 10);  // wait for 10 us
-	       HAL_GPIO_WritePin(TRIG_PORT, TRIG_PIN, GPIO_PIN_RESET);  // pull the TRIG pin low
+	pMillis = HAL_GetTick(); // used this to avoid infinite while loop  (for timeout)
+	// wait for the echo pin to go high
+	while (!(HAL_GPIO_ReadPin (ECHO_PORT, ECHO_PIN)) && pMillis + 10 >  HAL_GetTick());
+	Value1 = __HAL_TIM_GET_COUNTER (&htim12);
 
-	       pMillis = HAL_GetTick(); // used this to avoid infinite while loop  (for timeout)
-	       // wait for the echo pin to go high
-	       while (!(HAL_GPIO_ReadPin (ECHO_PORT, ECHO_PIN)) && pMillis + 10 >  HAL_GetTick());
-	       Value1 = __HAL_TIM_GET_COUNTER (&htim12);
+	pMillis = HAL_GetTick(); // used this to avoid infinite while loop (for timeout)
+	// wait for the echo pin to go low
+	while ((HAL_GPIO_ReadPin (ECHO_PORT, ECHO_PIN)) && pMillis + 50 > HAL_GetTick());
+	Value2 = __HAL_TIM_GET_COUNTER (&htim12);
 
-	       pMillis = HAL_GetTick(); // used this to avoid infinite while loop (for timeout)
-	       // wait for the echo pin to go low
-	       while ((HAL_GPIO_ReadPin (ECHO_PORT, ECHO_PIN)) && pMillis + 50 > HAL_GetTick());
-	       Value2 = __HAL_TIM_GET_COUNTER (&htim12);
+	Distance = (Value2-Value1)* 0.034/2;
 
-	       Distance = (Value2-Value1)* 0.034/2;
+	snprintf(buffer, sizeof(buffer), "%d", Distance);
+	char out[16];
+	snprintf(out, sizeof(out), " %s\r\n", buffer);
+//	HAL_Delay(50);
+//	print("%s", out);
 
-	       snprintf(buffer, sizeof(buffer), "%d", Distance);
-	       HD44780_Clear();
-	       HD44780_SetCursor(0,0);
-	       HD44780_PrintStr(buffer);
-	       HAL_Delay(50);
-
-
-	       return Distance;
+//	HD44780_Clear();
+//	HD44780_SetCursor(0,0);
+//	HD44780_PrintStr(buffer);
+//	HAL_Delay(50);
+//	__enable_irq();
+	return Distance;
 }
 
 
@@ -180,14 +183,14 @@ void moveServo_right_forward(void){
 		servo_millis = HAL_GetTick();
 		servo_state = 1;
 	}
-	else if (HAL_GetTick() - servo_millis >= 5000  && servo_state == 1){
+	else if (HAL_GetTick() - servo_millis >= 800  && servo_state == 1){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 500);   // ~0°
 		servo_millis = HAL_GetTick(); //Reset Back to 0
 		servo_state = 2;
 	}
-	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 2){
+	else if (HAL_GetTick() - servo_millis >= 1400 && servo_state == 2){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~90°
-		servo_millis = 0; //Reset Back to 0
+		servo_millis = HAL_GetTick();
 		servo_state = 1;
 	}
 
@@ -204,14 +207,14 @@ void moveServo_left_forward(void){
 			servo_millis = HAL_GetTick();
 			servo_state = 1;
 	}
-else if (HAL_GetTick() - servo_millis >= 5000 && servo_state == 1){
+else if (HAL_GetTick() - servo_millis >= 800 && servo_state == 1){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 2500);   // ~180°
 		servo_millis = HAL_GetTick(); //Reset Back to 0
 		servo_state = 2;
 	}
-	else if (HAL_GetTick() - servo_millis >= 2000 && servo_state == 2){
+	else if (HAL_GetTick() - servo_millis >= 1400 && servo_state == 2){
 		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~90°
-		servo_millis = 0; //Reset Back to 0
+		servo_millis = HAL_GetTick(); //Reset Back to 0
 		servo_state = 1;
 	}
 }
@@ -239,6 +242,35 @@ void battery_voltage_shutdown(void){
 			}
 			}
 
+}
+
+void TurnSignals(void) { //Credit goes to grok.
+    static uint32_t t_turn = 0;
+    static uint8_t  blink_on = 0;
+
+    // Same 250 ms cadence as HeartBeat
+    if (HAL_GetTick() >= t_turn) {
+        blink_on = !blink_on;
+        t_turn += 250;
+    }
+
+    // Brake lights take priority — solid on, no blinking
+    // (BREAKLIGHTS() already forces both pins; we just don't override them here
+    //  if you call this only when not braking. Or explicitly:)
+    if (left_turn_active && !right_turn_active) {
+        HAL_GPIO_WritePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin,
+                          blink_on ? GPIO_PIN_SET : GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin, GPIO_PIN_RESET);
+    }
+    else if (right_turn_active && !left_turn_active) {
+        HAL_GPIO_WritePin(R_TAILLIGHT_GPIO_Port, R_TAILLIGHT_Pin,
+                          blink_on ? GPIO_PIN_SET : GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(L_TAILLIGHT_GPIO_Port, L_TAILLIGHT_Pin, GPIO_PIN_RESET);
+    }
+    else if (!left_turn_active && !right_turn_active) {
+        // neither turning — leave pins alone so BREAKLIGHTS() can own them
+        // (or force off if you prefer)
+    }
 }
 
 
@@ -339,19 +371,20 @@ int main(void)
   // sets timer for pinger or servo
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
 
-    HAL_TIM_Base_Start(&htim12);
-    HAL_GPIO_WritePin(TRIG_PORT, TRIG_PIN, GPIO_PIN_RESET);  // pull the TRIG pin low
-    HD44780_Init(2);
-    HD44780_Clear();
-    HD44780_SetCursor(0,0);
-    HD44780_PrintStr("HC-SR04");
-    HAL_Delay(500);
+  HAL_TIM_Base_Start(&htim12);
+  HAL_GPIO_WritePin(TRIG_PORT, TRIG_PIN, GPIO_PIN_RESET);  // pull the TRIG pin low
+//    HD44780_Init(2);
+//    HD44780_Clear();
+//    HD44780_SetCursor(0,0);
+//    HD44780_PrintStr("HC-SR04");
+    HAL_Delay(250);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   print("\033[H\033[2J");
   print("Rover v0.1 %s %s\r\n\r\n", __DATE__, __TIME__);
+  battery_voltage_shutdown();
 
   // boot up delay
 //  HAL_Delay(500);
@@ -360,29 +393,31 @@ int main(void)
   // startup for leds and horn
 //  bist();
 
-  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 1500);   // ~0°
 
   startTime = HAL_GetTick(); // start the "timer" for how long it takes to go down the hall (one way)
+  set_default_motor_speed();
   while (1)
   {
 
  // tasks that are always running
 
 		HeartBeat();
+		TurnSignals();   // same 250 ms rhythm
 		Command_Proc();
 		battery_voltage_shutdown();
+
 
 		// logic to control movement for the project phase
 
 
 
-		// This should stop the rover on the way back. Subtracting 7600 for the time it takes to turn around.
-		if (HAL_GetTick() - stopTime - 7600 >= diffTime && robot_state == STATE_DRIVING_BACK) {
-			stop();
-			BREAKLIGHTS(GPIO_PIN_SET);
-			for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 1000;) {}
-			BREAKLIGHTS(GPIO_PIN_RESET);
-			while(1){}
+		// This should stop the rover on the way back. Subtracting 7200 for the time it takes to turn around.
+		if (HAL_GetTick() - stopTime - 7200 >= diffTime && robot_state == STATE_DRIVING_BACK) {
+				stop();
+				BREAKLIGHTS(GPIO_PIN_SET);
+				for (uint32_t start_tick = HAL_GetTick(); (HAL_GetTick() - start_tick) < 1000;) {}
+				BREAKLIGHTS(GPIO_PIN_SET);
+				while(1){}
 		}
 
 
@@ -395,25 +430,70 @@ int main(void)
 		  {
 		 	 // default drive forward that stops when 2ft from object sets break lights
 		    case STATE_DRIVING_FORWARD:
-		        if (readaltra() <= stop_distance && servo_state == 1 && HAL_GetTick() - servo_millis >= 500){
-		            BREAKLIGHTS(GPIO_PIN_SET);
-		            stop();
-		            motor_millis = HAL_GetTick();
-		            robot_state = STATE_PAUSING_To_TURN;
+		        if (readaltra() <= 60.0 && servo_state == 1 && HAL_GetTick() - servo_millis >= 300){
+		        	print(" I'm Braking!\r\n");
+					BREAKLIGHTS(GPIO_PIN_SET);
+					stop();
+					motor_millis = HAL_GetTick();
+					robot_state = STATE_PAUSING_To_TURN;
 		        } else {
 		            BREAKLIGHTS(GPIO_PIN_RESET);
 		            forward();
 		            moveServo_right_forward(); // servo control on the way down the hall
+
+		            if (servo_state == 2 && (HAL_GetTick() - servo_millis) >= 200) {
+		                float d = readaltra();
+		                const float target   = 105.0f;
+		                const float deadband = 6.0f;
+		                const float kp       = 0.020f;   // tune this
+
+		                if (d > 15.0f && d < 250.0f) {
+		                    float error = d - target;   // + = too far, − = too close
+
+		                    if (error > deadband || error < -deadband) {
+		                        // correction grows with how far off you are
+		                        float adj = kp * error;          // can be positive or negative
+		                        // limit how hard you can kick in one reading
+		                        if (adj >  1.5f) adj =  1.5f;
+		                        if (adj < -1.5f) adj = -1.5f;
+
+		                        // too far (error > 0) → speed left, slow right
+		                        // too close (error < 0) → slow left, speed right
+		                        left_percentage  += adj;
+		                        right_percentage -= adj * 0.7f;
+		                    }
+
+		                    // clamps
+		                    if (left_percentage  < 30.0f) left_percentage  = 30.0f;
+		                    if (left_percentage  > 85.0f) left_percentage  = 85.0f;
+		                    if (right_percentage < 30.0f) right_percentage = 30.0f;
+		                    if (right_percentage > 85.0f) right_percentage = 85.0f;
+		                }
+		            }
+		                const float left_default  = 55.55f;   // match set_default_motor_speed()
+						const float right_default = 50.0f;
+						left_percentage  += (left_default  - left_percentage)  * 0.02f;
+						right_percentage += (right_default - right_percentage) * 0.02f;
+						if (servo_state == 1 && (HAL_GetTick() - servo_millis) >= 300) {
+							float front = readaltra();
+							if (front > 60.0f && front < 100.0f) {
+								float scale = (front - 60.0f) / 60.0f;  // 1.0 at 120 cm → 0 at 60 cm
+								if (scale < 0.4f) scale = 0.4f;
+								left_percentage  = 55.55f * scale;
+								right_percentage = 50.0f  * scale;
+							}
+						}
 		        }
+
 		        break;
 
 		     // state to wait 3 seconds to make sure it is wall and not random obstacle person or bad data
 		     // will go back to driving forward if it is not a wall otherwise to moves on to turn around
 		    case STATE_PAUSING_To_TURN:
-		        if (readaltra() > stop_distance && servo_state == 1){
+		        if (readaltra() > 60.0 && servo_state == 1){
 		            robot_state = STATE_DRIVING_FORWARD;           // path cleared
 		        } else if (HAL_GetTick() - motor_millis >= 3000){
-		        		stopTime = HAL_GetTick(); // stop time for the "timer" for how long it takes to go down the hall one way
+		        		stopTime = HAL_GetTick(); // stop the "timer" for how long it takes to go down the hall one way
 		        		diffTime = stopTime - startTime - 3000; // subtract startTime from stopTime to determine how long it took, subtract 3000 for time waiting.
 		            turn_around();
 		            motor_millis = HAL_GetTick();
@@ -427,13 +507,15 @@ int main(void)
 		    case STATE_STOP_TURNING:
 		        if (HAL_GetTick() - motor_millis >= 7600){
 		            stop();
+		            left_turn_active = 0;          // stop blinking
+					right_turn_active = 0;
 		            BREAKLIGHTS(GPIO_PIN_RESET);
 		            robot_state = STATE_DRIVING_BACK;
 		        }
 		        break;
 
 		    case STATE_DRIVING_BACK:
-		    	if (readaltra() <= stop_distance && servo_state == 1 && HAL_GetTick() - servo_millis >= 500){
+		    	if (readaltra() <= 60.0 && servo_state == 1 && HAL_GetTick() - servo_millis >= 300){
 		    		BREAKLIGHTS(GPIO_PIN_SET);
 		    		stop();
 		    		motor_millis = HAL_GetTick();
@@ -442,17 +524,49 @@ int main(void)
 		        	BREAKLIGHTS(GPIO_PIN_RESET);
 		    	    forward();
 		    	    moveServo_left_forward(); // servo control on the way back the hall
+		    	    if (servo_state == 2 && (HAL_GetTick() - servo_millis) >= 200) {
+						float d = readaltra();
+						const float target   = 105.0f;
+						const float deadband = 6.0f;
+						const float kp       = 0.016f;   // tune this
+
+						if (d > 15.0f && d < 250.0f) {
+							float error = d - target;   // + = too far, − = too close
+
+							if (error > deadband || error < -deadband) {
+								// correction grows with how far off you are
+								float adj = kp * error;          // can be positive or negative
+								// limit how hard you can kick in one reading
+								if (adj >  1.5f) adj =  1.5f;
+								if (adj < -1.5f) adj = -1.5f;
+
+								// too far (error < 0)
+								// too close (error > 0)
+								left_percentage  -= adj;
+								right_percentage += adj * 0.7f;
+							}
+
+							// clamps
+							if (left_percentage  < 30.0f) left_percentage  = 30.0f;
+							if (left_percentage  > 85.0f) left_percentage  = 85.0f;
+							if (right_percentage < 30.0f) right_percentage = 30.0f;
+							if (right_percentage > 85.0f) right_percentage = 85.0f;
+						}
+					}
+						const float left_default  = 55.55f;   // match set_default_motor_speed()
+						const float right_default = 50.0f;
+						left_percentage  += (left_default  - left_percentage)  * 0.02f;
+						right_percentage += (right_default - right_percentage) * 0.02f;
 		    	}
 		    	break;
 
 		    case STATE_PURELY_PAUSING:
 
-			if (readaltra() > stop_distance && servo_state == 1){
+			if (readaltra() > 60.0 && servo_state == 1){
 				robot_state = STATE_DRIVING_BACK;           // path cleared
 			}
 			break;
 		    }
-
 
 
 

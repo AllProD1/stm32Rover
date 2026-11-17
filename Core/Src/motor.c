@@ -25,7 +25,7 @@ double left_percentage = 55.55;
 
 
 void forward(void) {
-		print("forward() called\r\n");
+		print("L: %.1f  R: %.1f\r\n", left_percentage, right_percentage);
 
 
 		// Right, forwards
@@ -104,5 +104,9 @@ void turn_around(void){
 			HAL_GPIO_WritePin(L298N_IN3_GPIO_Port, L298N_IN3_Pin, 0);
 			HAL_GPIO_WritePin(L298N_IN4_GPIO_Port, L298N_IN4_Pin, 1);
 
+}
+void set_default_motor_speed(void){
+	right_percentage = 50.0;
+	left_percentage = 55.55;
 }
 
