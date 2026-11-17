@@ -79,7 +79,7 @@ uint32_t startTime = 0;
 uint32_t stopTime = 0;
 uint32_t diffTime = 0;
 
-// enum for the robot movement state machine
+// enum for the robot movement state machines
 typedef enum {
     STATE_DRIVING_FORWARD,
 	STATE_PAUSING_To_TURN,
